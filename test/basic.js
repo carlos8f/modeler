@@ -1,5 +1,5 @@
 describe('basic test', function () {
-  var apples, oranges, destroyed = [], bigGood, smallBad;
+  var apples, oranges, destroyed = [], bigGood, smallBad, notSureOk;
   it('creates apples model', function () {
     apples = modeler({
       create: function (apple) {
@@ -129,11 +129,42 @@ describe('basic test', function () {
       done();
     });
   });
+  it('creates another', function (done) {
+    notSureOk = apples.create({condition: 'ok'}, function (err) {
+      assert.ifError(err);
+      done();
+    });
+  });
   it('reverses', function (done) {
     apples.list({reverse: true}, function (err, keys) {
       assert.ifError(err);
       assert.deepEqual(keys, [
+        notSureOk.id,
+        smallBad.id,
+        bigGood.id
+      ]);
+      done();
+    });
+  });
+  it('destroys', function (done) {
+    apples.destroy(smallBad.id, function (err) {
+      assert.ifError(err);
+      assert.deepEqual(destroyed, [
         smallBad.id
+      ]);
+      apples.load(smallBad.id, function (err, apple) {
+        assert.ifError(err);
+        assert.equal(apple, null);
+        done();
+      });
+    });
+  });
+  it('new list', function (done) {
+    apples.list(function (err, keys) {
+      assert.ifError(err);
+      assert.deepEqual(keys, [
+        bigGood.id,
+        notSureOk.id
       ]);
       done();
     });

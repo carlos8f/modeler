@@ -9,6 +9,15 @@ module.exports = function (_opts) {
     return ':' + id;
   }
 
+  function updateKeys () {
+    keys = Object.keys(data);
+    keys.sort(function (a, b) {
+      if (data[a].created < data[b].created) return -1;
+      if (data[a].created > data[b].created) return 1;
+      return 0;
+    });
+  }
+
   api._list = function (options, cb) {
     var _keys = keys.slice();
     if (options.reverse) _keys.reverse();
@@ -19,12 +28,7 @@ module.exports = function (_opts) {
   };
   api._save = function (saveEntity, cb) {
     data[key(saveEntity.id)] = saveEntity;
-    keys = Object.keys(data);
-    keys.sort(function (a, b) {
-      if (data[a].created < data[b].created) return -1;
-      if (data[a].created > data[b].created) return 1;
-      return 0;
-    });
+    updateKeys();
     cb();
   };
   api._load = function (id, cb) {
@@ -34,6 +38,7 @@ module.exports = function (_opts) {
   };
   api._destroy = function (id, cb) {
     delete data[key(id)];
+    updateKeys();
     cb();
   };
 
