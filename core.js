@@ -95,7 +95,7 @@ module.exports = function (_opts) {
 
   _opts || (_opts = {});
   api.options = api.copy(_opts);
-
+  api.options.name || (api.options.name = 'modeler');
   api.options.defaultCb || (api.options.defaultCb = function defaultCb (err) {
     if (err) throw err;
   });

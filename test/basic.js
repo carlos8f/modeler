@@ -1,7 +1,10 @@
 describe('basic test', function () {
   var apples, oranges, destroyed = [], bigGood, smallBad, notSureOk;
+  if (typeof setUp !== 'undefined') before(setUp);
+  if (typeof tearDown !== 'undefined') after(tearDown);
   it('creates apples model', function () {
-    apples = modeler({
+    var options = {
+      name: 'apples',
       create: function (apple) {
         apple.size || (apple.size = 'not sure');
       },
@@ -33,10 +36,24 @@ describe('basic test', function () {
         destroyed.push(apple.id);
         process.nextTick(cb);
       }
-    });
+    };
+    if (typeof extraOptions !== 'undefined') {
+      Object.keys(extraOptions).forEach(function (k) {
+        options[k] = extraOptions[k];
+      });
+    }
+    apples = modeler(options);
   });
   it('creates oranges model', function () {
-    oranges = modeler();
+    var options = {
+      names: 'oranges'
+    };
+    if (typeof extraOptions !== 'undefined') {
+      Object.keys(extraOptions).forEach(function (k) {
+        options[k] = extraOptions[k];
+      });
+    }
+    oranges = modeler(options);
   });
   it('creates a few apples', function (done) {
     bigGood = apples.create({size: 'big', condition: 'good'});
