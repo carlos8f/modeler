@@ -35,6 +35,9 @@ describe('basic test', function () {
       }
     });
   });
+  it('creates oranges model', function () {
+    oranges = modeler();
+  });
   it('creates a few apples', function (done) {
     bigGood = apples.create({size: 'big', condition: 'good'});
     assert(bigGood.id);
@@ -87,6 +90,7 @@ describe('basic test', function () {
       assert.ifError(err);
       assert.deepEqual(savedBigGood, bigGood);
       assert.equal(savedBigGood.type, 'red delicious');
+      assert.equal(savedBigGood.rev, 2);
       done();
     });
   });
@@ -167,6 +171,32 @@ describe('basic test', function () {
         notSureOk.id
       ]);
       done();
+    });
+  });
+  it('creates an orange', function (done) {
+    var single = oranges.create(function (err, savedSingle) {
+      assert.ifError(err);
+      assert.deepEqual(savedSingle, single);
+      assert(savedSingle.id);
+      assert.equal(savedSingle.rev, 1);
+      done();
+    });
+  });
+  it('lists oranges', function (done) {
+    oranges.list(function (err, keys) {
+      assert.ifError(err);
+      assert.equal(keys.length, 1);
+
+      var id = keys.pop();
+      oranges.load(id, function (err, orange) {
+        assert.ifError(err);
+        assert(orange);
+        oranges.destroy(orange.id, function (err) {
+          assert.ifError(err);
+          assert.equal(destroyed.length, 1); // destroyed array only applies to apples
+          done();
+        });
+      });
     });
   });
 });

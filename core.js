@@ -21,7 +21,9 @@ module.exports = function (_opts) {
       if (typeof entity.created === 'undefined') entity.created = new Date();
       if (typeof entity.rev === 'undefined') entity.rev = 0;
       if (api.options.create) api.options.create.call(api, entity);
-      if (cb) api.save(entity, cb);
+      if (cb) process.nextTick(function () {
+        api.save(entity, cb);
+      });
       return entity;
     },
     save: function (entity, cb) {
