@@ -105,7 +105,25 @@ describe('basic test', function () {
     apples.list(function (err, keys) {
       assert.ifError(err);
       assert.deepEqual(keys, [
-        smallBad.id,
+        bigGood.id,
+        smallBad.id
+      ]);
+      done();
+    });
+  });
+  it('partial list', function (done) {
+    apples.list({start: 1}, function (err, keys) {
+      assert.ifError(err);
+      assert.deepEqual(keys, [
+        smallBad.id
+      ]);
+      done();
+    });
+  });
+  it('another list', function (done) {
+    apples.list({stop: 1}, function (err, keys) {
+      assert.ifError(err);
+      assert.deepEqual(keys, [
         bigGood.id
       ]);
       done();

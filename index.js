@@ -22,7 +22,7 @@ module.exports = function (_opts) {
     keys = Object.keys(data);
     keys.sort(function (a, b) {
       if (data[a].created < data[b].created) return -1;
-      if (data[b].created > data[b].created) return 1;
+      if (data[a].created > data[b].created) return 1;
       return 0;
     });
     cb();
