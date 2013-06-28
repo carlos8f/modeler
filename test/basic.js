@@ -108,6 +108,7 @@ describe('basic test', function () {
       assert.deepEqual(savedBigGood, bigGood);
       assert.equal(savedBigGood.type, 'red delicious');
       assert.equal(savedBigGood.rev, 2);
+      assert(savedBigGood.updated > savedBigGood.created);
       done();
     });
   });
