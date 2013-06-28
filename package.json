@@ -1,0 +1,31 @@
+{
+  "name": "modeler",
+  "version": "0.0.0",
+  "description": "simple entity system using a functional approach",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "*"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/carlos8f/modeler.git"
+  },
+  "homepage": "https://github.com/carlos8f/modeler",
+  "keywords": [
+    "entity",
+    "model",
+    "orm",
+    "bacon"
+  ],
+  "author": "Carlos Rodriguez <carlos@s8f.org> (http://s8f.org/)",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "c13fee7b375f2c35b5ab7b12c6d1c3f0686d6b19",
+  "bugs": {
+    "url": "https://github.com/carlos8f/modeler/issues"
+  }
+}
