@@ -129,4 +129,13 @@ describe('basic test', function () {
       done();
     });
   });
+  it('reverses', function (done) {
+    apples.list({reverse: true}, function (err, keys) {
+      assert.ifError(err);
+      assert.deepEqual(keys, [
+        smallBad.id
+      ]);
+      done();
+    });
+  });
 });
