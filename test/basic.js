@@ -43,23 +43,25 @@ describe('basic test', function () {
     assert.equal(bigGood.size, 'big');
     assert.equal(bigGood.condition, 'good');
 
-    smallBad = apples.create({size: 'small', condition: 'bad'}, function (err, savedSmallBad) {
-      assert.ifError(err);
-      assert(savedSmallBad.id);
-      assert(savedSmallBad.created.getTime());
-      assert.deepEqual(smallBad, savedSmallBad);
-      assert.equal(savedSmallBad.rev, 1);
-      assert.equal(savedSmallBad.size, 'small');
-      assert.equal(savedSmallBad.condition, 'bad');
-
-      apples.load(bigGood.id, function (err, savedBigGood) {
+    setTimeout(function () {
+      smallBad = apples.create({size: 'small', condition: 'bad'}, function (err, savedSmallBad) {
         assert.ifError(err);
-        assert(!savedBigGood);
-        apples.save(bigGood, done);
+        assert(savedSmallBad.id);
+        assert(savedSmallBad.created.getTime());
+        assert.deepEqual(smallBad, savedSmallBad);
+        assert.equal(savedSmallBad.rev, 1);
+        assert.equal(savedSmallBad.size, 'small');
+        assert.equal(savedSmallBad.condition, 'bad');
+
+        apples.load(bigGood.id, function (err, savedBigGood) {
+          assert.ifError(err);
+          assert(!savedBigGood);
+          apples.save(bigGood, done);
+        });
       });
-    });
-    assert.equal(smallBad.size, 'small');
-    assert.equal(smallBad.condition, 'bad');
+      assert.equal(smallBad.size, 'small');
+      assert.equal(smallBad.condition, 'bad');
+    }, 10);
   });
   it('loads', function (done) {
     apples.load(bigGood.id, function (err, savedBigGood) {
@@ -85,6 +87,27 @@ describe('basic test', function () {
       assert.ifError(err);
       assert.deepEqual(savedBigGood, bigGood);
       assert.equal(savedBigGood.type, 'red delicious');
+      done();
+    });
+  });
+  it('validates', function (done) {
+    apples.create({size: 'medium'}, function (err, apple) {
+      assert.equal(err.message, 'condition is required');
+      assert.equal(apple, undefined);
+      done();
+    });
+  });
+  it('defaults', function () {
+    var notSure = apples.create({condition: 'so so'});
+    assert.equal(notSure.size, 'not sure');
+  });
+  it('lists', function (done) {
+    apples.list(function (err, keys) {
+      assert.ifError(err);
+      assert.deepEqual(keys, [
+        smallBad.id,
+        bigGood.id
+      ]);
       done();
     });
   });
