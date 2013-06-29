@@ -27,6 +27,7 @@ describe('basic test', function () {
         if (!apple.internal) return cb(new Error('apple should be internal right now'));
         var c = apples.copy(apple);
         delete c.internal;
+        if (c.type === null) delete c.type; // account for mysql which has a schema
         process.nextTick(function () {
           c.condition = c.condition.pop();
           cb(null, c);
@@ -46,7 +47,7 @@ describe('basic test', function () {
   });
   it('creates oranges model', function () {
     var options = {
-      names: 'oranges'
+      name: 'oranges'
     };
     if (typeof extraOptions !== 'undefined') {
       Object.keys(extraOptions).forEach(function (k) {
@@ -86,6 +87,8 @@ describe('basic test', function () {
   it('loads', function (done) {
     apples.load(bigGood.id, function (err, savedBigGood) {
       assert.ifError(err);
+      console.log('saved', JSON.stringify(savedBigGood));
+      console.log('returned', JSON.stringify(bigGood));
       assert.deepEqual(savedBigGood, bigGood);
       assert.equal(savedBigGood.rev, 1);
       assert.equal(savedBigGood.size, 'big');
