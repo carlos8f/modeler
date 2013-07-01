@@ -8,7 +8,19 @@ module.exports = function (_opts) {
         options = null;
       }
       options || (options = {});
-      api._list.call(api, options, cb);
+      api.tail(function (err, keys) {
+        if (err) return cb(err);
+        if (!options.reverse) keys.reverse();
+        cb(null, keys.slice(options.start, options.stop));
+      });
+    },
+    tail: function (limit, cb) {
+      if (typeof limit === 'function') {
+        cb = limit;
+        limit = undefined;
+      }
+      if (!limit) limit = undefined;
+      api._tail(limit, cb);
     },
     create: function (attrs, cb) {
       if (typeof attrs === 'function') {

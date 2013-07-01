@@ -27,7 +27,6 @@ describe('basic test', function () {
         if (!apple.internal) return cb(new Error('apple should be internal right now'));
         var c = apples.copy(apple);
         delete c.internal;
-        if (c.type === null) delete c.type; // account for mysql which has a schema
         process.nextTick(function () {
           c.condition = c.condition.pop();
           cb(null, c);
@@ -87,8 +86,6 @@ describe('basic test', function () {
   it('loads', function (done) {
     apples.load(bigGood.id, function (err, savedBigGood) {
       assert.ifError(err);
-      console.log('saved', JSON.stringify(savedBigGood));
-      console.log('returned', JSON.stringify(bigGood));
       assert.deepEqual(savedBigGood, bigGood);
       assert.equal(savedBigGood.rev, 1);
       assert.equal(savedBigGood.size, 'big');
@@ -130,8 +127,8 @@ describe('basic test', function () {
     apples.list(function (err, keys) {
       assert.ifError(err);
       assert.deepEqual(keys, [
-        bigGood.id,
-        smallBad.id
+        smallBad.id,
+        bigGood.id
       ]);
       done();
     });
@@ -140,7 +137,7 @@ describe('basic test', function () {
     apples.list({start: 1}, function (err, keys) {
       assert.ifError(err);
       assert.deepEqual(keys, [
-        smallBad.id
+        bigGood.id
       ]);
       done();
     });
@@ -149,7 +146,7 @@ describe('basic test', function () {
     apples.list({stop: 1}, function (err, keys) {
       assert.ifError(err);
       assert.deepEqual(keys, [
-        bigGood.id
+        smallBad.id
       ]);
       done();
     });
@@ -165,7 +162,17 @@ describe('basic test', function () {
       assert.ifError(err);
       assert.deepEqual(keys, [
         notSureOk.id,
-        smallBad.id,
+        bigGood.id,
+        smallBad.id
+      ]);
+      done();
+    });
+  });
+  it('tail', function (done) {
+    apples.tail(2, function (err, keys) {
+      assert.ifError(err);
+      assert.deepEqual(keys, [
+        notSureOk.id,
         bigGood.id
       ]);
       done();
