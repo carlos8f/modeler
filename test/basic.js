@@ -26,11 +26,10 @@ describe('basic test', function () {
           return cb(new Error('apples need to be stored with a condition as an array. don\'t ask me why!'));
         if (!apple.condition.length) return cb(new Error(apple.size + ' has no condition'));
         if (!apple.internal) return cb(new Error('apple should be internal right now'));
-        var c = apples.copy(apple);
-        delete c.internal;
+        delete apple.internal;
         process.nextTick(function () {
-          c.condition = c.condition[0];
-          cb(null, c);
+          apple.condition = apple.condition[0];
+          cb(null, apple);
         });
       },
       destroy: function (apple, cb) {
