@@ -16,6 +16,7 @@ module.exports = function (_opts) {
   api._load = function (id, cb) {
     var entity = data[':' + id];
     if (typeof entity === 'undefined') entity = null;
+    else entity = api.copy(entity);
     cb(null, entity);
   };
   api._destroy = function (id, cb) {

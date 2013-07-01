@@ -16,7 +16,7 @@ describe('basic test', function () {
         // test save transformation
         process.nextTick(function () {
           var c = apples.copy(apple);
-          c.condition = [c.condition];
+          if (!Array.isArray(c.condition)) c.condition = [c.condition];
           c.internal = true;
           cb(null, c);
         });
@@ -24,11 +24,12 @@ describe('basic test', function () {
       load: function (apple, cb) {
         if (!Array.isArray(apple.condition))
           return cb(new Error('apples need to be stored with a condition as an array. don\'t ask me why!'));
+        if (!apple.condition.length) return cb(new Error(apple.size + ' has no condition'));
         if (!apple.internal) return cb(new Error('apple should be internal right now'));
         var c = apples.copy(apple);
         delete c.internal;
         process.nextTick(function () {
-          c.condition = c.condition.pop();
+          c.condition = c.condition[0];
           cb(null, c);
         });
       },
@@ -174,6 +175,18 @@ describe('basic test', function () {
       assert.deepEqual(keys, [
         notSureOk.id,
         bigGood.id
+      ]);
+      done();
+    });
+  });
+  it('load multi', function (done) {
+    apples.load([smallBad.id, notSureOk.id, 'made up', bigGood.id], function (err, entities) {
+      assert.ifError(err);
+      assert.deepEqual(entities, [
+        smallBad,
+        notSureOk,
+        null,
+        bigGood
       ]);
       done();
     });

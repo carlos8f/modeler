@@ -11,7 +11,9 @@ module.exports = function (_opts) {
       api.tail(function (err, keys) {
         if (err) return cb(err);
         if (!options.reverse) keys.reverse();
-        cb(null, keys.slice(options.start, options.stop));
+        keys = keys.slice(options.start, options.stop);
+        if (!options.load) return cb(null, keys);
+        api.load(keys, cb);
       });
     },
     tail: function (limit, cb) {
@@ -66,6 +68,20 @@ module.exports = function (_opts) {
     },
     load: function (id, cb) {
       if (!cb) cb = defaultCb;
+      if (Array.isArray(id)) {
+        var ret = [];
+        if (!id.length) return cb(null, ret);
+        if (api._loadMulti) return api._loadMulti(id, cb);
+        var latch = id.length, errored = false;
+        id.forEach(function (id, idx) {
+          api.load(id, function (err, entity) {
+            if (err) return cb(err);
+            ret[idx] = entity;
+            if (!--latch) return cb(null, ret);
+          });
+        });
+        return;
+      }
       api._load(id, function (err, entity) {
         if (err) return cb(err);
         if (!entity) return cb(null, null);
