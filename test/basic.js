@@ -63,25 +63,23 @@ describe('basic test', function () {
     assert.equal(bigGood.size, 'big');
     assert.equal(bigGood.condition, 'good');
 
-    setTimeout(function () {
-      smallBad = apples.create({size: 'small', condition: 'bad'}, function (err, savedSmallBad) {
-        assert.ifError(err);
-        assert(savedSmallBad.id);
-        assert(savedSmallBad.created.getTime());
-        assert.deepEqual(smallBad, savedSmallBad);
-        assert.equal(savedSmallBad.rev, 1);
-        assert.equal(savedSmallBad.size, 'small');
-        assert.equal(savedSmallBad.condition, 'bad');
+    smallBad = apples.create({size: 'small', condition: 'bad'}, function (err, savedSmallBad) {
+      assert.ifError(err);
+      assert(savedSmallBad.id);
+      assert(savedSmallBad.created.getTime());
+      assert.deepEqual(smallBad, savedSmallBad);
+      assert.equal(savedSmallBad.rev, 1);
+      assert.equal(savedSmallBad.size, 'small');
+      assert.equal(savedSmallBad.condition, 'bad');
 
-        apples.load(bigGood.id, function (err, savedBigGood) {
-          assert.ifError(err);
-          assert(!savedBigGood);
-          apples.save(bigGood, done);
-        });
+      apples.load(bigGood.id, function (err, savedBigGood) {
+        assert.ifError(err);
+        assert(!savedBigGood);
+        apples.save(bigGood, done);
       });
-      assert.equal(smallBad.size, 'small');
-      assert.equal(smallBad.condition, 'bad');
-    }, 10);
+    });
+    assert.equal(smallBad.size, 'small');
+    assert.equal(smallBad.condition, 'bad');
   });
   it('loads', function (done) {
     apples.load(bigGood.id, function (err, savedBigGood) {
