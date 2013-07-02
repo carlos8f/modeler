@@ -8,11 +8,18 @@ module.exports = function (_opts) {
         options = null;
       }
       options || (options = {});
-      api.tail(0, {load: options.load}, function (err, list) {
+      var list = [];
+      api.tail(0, {load: options.load}, function (err, res, next) {
         if (err) return cb(err);
-        if (!options.reverse) list.reverse();
-        list = list.slice(options.start, options.stop);
-        cb(null, list);
+        list = list.concat(res);
+        if (res.length && next) {
+          next();
+        }
+        else {
+          if (!options.reverse) list.reverse();
+          list = list.slice(options.start, options.stop);
+          cb(null, list);
+        }
       });
     },
     tail: function (limit, options, cb) {
@@ -28,7 +35,7 @@ module.exports = function (_opts) {
       limit || (limit = undefined);
       options || (options = {});
 
-      api._tail(limit, function (err, list) {
+      api._tail(limit, function (err, list, next) {
         if (err) return cb(err);
         // some backends may return full entities here. filter to what we need
         if (options.load) {
@@ -40,7 +47,7 @@ module.exports = function (_opts) {
             return entity.id;
           });
         }
-        cb(null, list);
+        cb(null, list, next);
       });
     },
     create: function (attrs, cb) {
