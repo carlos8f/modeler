@@ -30,11 +30,11 @@ module.exports = function (_opts) {
 
       api._tail(limit, function (err, list) {
         // some backends may return full entities here. filter to what we need
-        if (options.load && typeof list[0] !== 'object') {
+        if (options.load) {
           api.load(list, cb);
           return;
         }
-        else if (!options.load && typeof list[0] === 'object') {
+        else if (typeof list[0] === 'object') {
           list = list.map(function (entity) {
             return entity.id;
           });
@@ -128,16 +128,14 @@ module.exports = function (_opts) {
         });
         return;
       }
-      api._load(id, function (err, entity) {
-        if (err) return cb(err);
-        if (!entity) return cb(null, null);
 
+      function prepare (entity) {
         if (api.options.load) api.options.load.call(api, entity, doCallback);
         else doCallback();
 
         function doCallback (err, loadEntity) {
-          if (!loadEntity) loadEntity = entity;
           if (err) return cb(err);
+          if (!loadEntity) loadEntity = entity;
 
           if (!options.raw) {
             // clean up save-only properties
@@ -148,7 +146,17 @@ module.exports = function (_opts) {
 
           cb(null, loadEntity);
         }
-      });
+      }
+
+      if (typeof id === 'object') prepare(id);
+      else {
+        api._load(id, function (err, entity) {
+          if (err) return cb(err);
+          if (!entity) return cb(null, null);
+
+          prepare(entity);
+        });
+      }
     },
     destroy: function (id, cb) {
       if (!cb) cb = defaultCb;
