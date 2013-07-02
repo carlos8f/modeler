@@ -29,6 +29,7 @@ module.exports = function (_opts) {
       options || (options = {});
 
       api._tail(limit, function (err, list) {
+        if (err) return cb(err);
         // some backends may return full entities here. filter to what we need
         if (options.load) {
           api.load(list, cb);
