@@ -59,7 +59,7 @@ module.exports = function (_opts) {
         entity.rev++;
         entity.updated = new Date();
 
-        if (api.options.save) api.options.save.call(api, api.copy(entity), doSave);
+        if (api.options.save) api.options.save.call(api, entity, doSave);
         else doSave();
 
         function doSave (err, saveEntity) {
