@@ -66,10 +66,17 @@ module.exports = function (_opts) {
           if (!saveEntity) saveEntity = entity;
           if (err) return cb(err);
 
-          api._save(saveEntity, function (err) {
+          api._save(saveEntity, function (err, savedEntity) {
             if (err) {
               entity.rev--;
               return cb(err);
+            }
+
+            if (savedEntity) {
+              // sync up in-memory entity with saved one, e.g. auto-incremented ids
+              Object.keys(savedEntity).forEach(function (k) {
+                entity[k] = savedEntity[k];
+              });
             }
 
             // clean up save-only properties
