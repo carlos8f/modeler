@@ -67,7 +67,10 @@ module.exports = function (_opts) {
           if (err) return cb(err);
 
           api._save(saveEntity, function (err) {
-            if (err) return cb(err);
+            if (err) {
+              entity.rev--;
+              return cb(err);
+            }
 
             // clean up save-only properties
             Object.keys(entity).forEach(function (k) {
