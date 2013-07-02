@@ -42,17 +42,24 @@ module.exports = function (_opts) {
     },
     save: function (entity, cb) {
       if (!cb) cb = defaultCb;
-      api.load(entity.id, function (err, existing) {
+      api.load(entity.id, {raw: true}, function (err, existing) {
         if (err) return cb(err);
         if (existing && existing.rev > entity.rev) {
           err = new Error('cannot save over a newer revision');
           err.code = 'REV_CONFLICT';
           return cb(err);
         }
+        else if (existing) {
+          Object.keys(existing).forEach(function (k) {
+            if (typeof entity[k] === 'undefined') {
+              entity[k] = existing[k];
+            }
+          });
+        }
         entity.rev++;
         entity.updated = new Date();
 
-        if (api.options.save) api.options.save.call(api, entity, doSave);
+        if (api.options.save) api.options.save.call(api, api.copy(entity), doSave);
         else doSave();
 
         function doSave (err, saveEntity) {
@@ -61,12 +68,23 @@ module.exports = function (_opts) {
 
           api._save(saveEntity, function (err) {
             if (err) return cb(err);
+
+            // clean up save-only properties
+            Object.keys(entity).forEach(function (k) {
+              if (k.indexOf('__') === 0) delete entity[k];
+            });
+
             cb(null, entity);
           });
         }
       });
     },
-    load: function (id, cb) {
+    load: function (id, options, cb) {
+      if (typeof options === 'function') {
+        cb = options;
+        options = {};
+      }
+      options || (options = {});
       if (!cb) cb = defaultCb;
       if (Array.isArray(id)) {
         var ret = [];
@@ -92,6 +110,14 @@ module.exports = function (_opts) {
         function doCallback (err, loadEntity) {
           if (!loadEntity) loadEntity = entity;
           if (err) return cb(err);
+
+          if (!options.raw) {
+            // clean up save-only properties
+            Object.keys(loadEntity).forEach(function (k) {
+              if (k.indexOf('__') === 0) delete loadEntity[k];
+            });
+          }
+
           cb(null, loadEntity);
         }
       });

@@ -17,7 +17,7 @@ describe('basic test', function () {
         process.nextTick(function () {
           var c = apples.copy(apple);
           if (!Array.isArray(c.condition)) c.condition = [c.condition];
-          c.internal = true;
+          c.__internal = true;
           cb(null, c);
         });
       },
@@ -25,8 +25,7 @@ describe('basic test', function () {
         if (!Array.isArray(apple.condition))
           return cb(new Error('apples need to be stored with a condition as an array. don\'t ask me why!'));
         if (!apple.condition.length) return cb(new Error(apple.size + ' has no condition'));
-        if (!apple.internal) return cb(new Error('apple should be internal right now'));
-        delete apple.internal;
+        if (!apple.__internal) return cb(new Error('apple should be internal right now'));
         process.nextTick(function () {
           apple.condition = apple.condition[0];
           cb(null, apple);
@@ -71,6 +70,8 @@ describe('basic test', function () {
       assert.equal(savedSmallBad.rev, 1);
       assert.equal(savedSmallBad.size, 'small');
       assert.equal(savedSmallBad.condition, 'bad');
+      assert.strictEqual(savedSmallBad.__internal, undefined);
+      assert.strictEqual(smallBad.__internal, undefined);
 
       apples.load(bigGood.id, function (err, savedBigGood) {
         assert.ifError(err);
@@ -88,6 +89,8 @@ describe('basic test', function () {
       assert.equal(savedBigGood.rev, 1);
       assert.equal(savedBigGood.size, 'big');
       assert.equal(savedBigGood.condition, 'good');
+      assert.strictEqual(savedBigGood.__internal, undefined);
+      assert.strictEqual(bigGood.__internal, undefined);
       
       apples.load(smallBad.id, function (err, savedSmallBad) {
         assert.ifError(err);
