@@ -8,21 +8,39 @@ module.exports = function (_opts) {
         options = null;
       }
       options || (options = {});
-      api.tail(function (err, keys) {
+      api.tail(0, {load: options.load}, function (err, list) {
         if (err) return cb(err);
-        if (!options.reverse) keys.reverse();
-        keys = keys.slice(options.start, options.stop);
-        if (!options.load) return cb(null, keys);
-        api.load(keys, cb);
+        if (!options.reverse) list.reverse();
+        list = list.slice(options.start, options.stop);
+        cb(null, list);
       });
     },
-    tail: function (limit, cb) {
+    tail: function (limit, options, cb) {
       if (typeof limit === 'function') {
         cb = limit;
         limit = undefined;
+        options = {};
       }
-      if (!limit) limit = undefined;
-      api._tail(limit, cb);
+      if (typeof options === 'function') {
+        cb = options;
+        options = {};
+      }
+      limit || (limit = undefined);
+      options || (options = {});
+
+      api._tail(limit, function (err, list) {
+        // some backends may return full entities here. filter to what we need
+        if (options.load && typeof list[0] !== 'object') {
+          api.load(list, cb);
+          return;
+        }
+        else if (!options.load && typeof list[0] === 'object') {
+          list = list.map(function (entity) {
+            return entity.id;
+          });
+        }
+        cb(null, list);
+      });
     },
     create: function (attrs, cb) {
       if (typeof attrs === 'function') {
