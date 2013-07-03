@@ -67,7 +67,7 @@ module.exports = function (_opts) {
       return entity;
     },
     save: function (entity, cb) {
-      if (!cb) cb = defaultCb;
+      if (!cb) cb = api.options.defaultCb;
       api.load(entity.id, {raw: true}, function (err, existing) {
         if (err) return cb(err);
         if (existing && existing.rev > entity.rev) {
@@ -121,7 +121,7 @@ module.exports = function (_opts) {
         options = {};
       }
       options || (options = {});
-      if (!cb) cb = defaultCb;
+      if (!cb) cb = api.options.defaultCb;
       if (Array.isArray(id)) {
         var ret = [];
         if (!id.length) return cb(null, ret);
@@ -167,7 +167,7 @@ module.exports = function (_opts) {
       }
     },
     destroy: function (id, cb) {
-      if (!cb) cb = defaultCb;
+      if (!cb) cb = api.options.defaultCb;
       if (id.id) id = id.id;
       if (api.options.destroy) {
         api.load(id, function (err, entity) {
