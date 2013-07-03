@@ -112,8 +112,8 @@ List keys or objects
 - `reverse` (Boolean, default `false`) `true` to list in reverse insertion order
 - `offset` (Integer, default `0`) Start listing at the given zero-based offset
 - `limit` (Integer, default `undefined`) Max size for a chunk. A store may return
-  a list of a shorter length, and pass you a `next` function for when you're ready
-  for the next chunk.
+  a list of a shorter length, and pass you a `next` function to call when you're
+  ready for the next chunk.
 
 #### Callback
 
@@ -124,6 +124,53 @@ List callbacks are passed 2-3 arguments:
 3. `next`, (some stores may not support this) a function to call which will trigger
    the `cb` again with the next chunk
 
+#### Example
+
+```js
+var modeler = require('modeler');
+
+var musicians = modeler({
+  name: 'musicians'
+});
+
+var bands = {
+  'the beatles': ['john', 'paul', 'george', 'ringo'],
+  'the doors': ['john', 'ray', 'jim']
+};
+var latch = Object.keys(bands).reduce(function (latch, band) {
+  return latch + bands[band].length;
+}, 0);
+
+Object.keys(bands).forEach(function (band) {
+  bands[band].forEach(function (name) {
+    musicians.create({
+      band: band,
+      name: name
+    }, function (err) {
+      if (err) throw err;
+      if (!--latch) listMusicians();
+    });
+  });
+});
+
+// iterate the whole collection
+function listMusicians () {
+  var list = [];
+  function getChunk (err, chunk, next) {
+    if (err) throw err;
+    list = list.concat(chunk);
+    if (chunk.length && next) next(); // just get the whole list
+    else {
+      list.forEach(function (musician) {
+        console.log(musician.name + ' of ' + musician.band);
+      });
+    }
+  }
+
+  musicians.list({load: true}, getChunk);
+}
+```
+
 ### head([limit,] [options,] cb)
 
 List in order of insertion. Proxy for `list({limit: <limit>})`
@@ -131,6 +178,29 @@ List in order of insertion. Proxy for `list({limit: <limit>})`
 ### tail([limit,] [options,] cb)
 
 List in reverse order of insertion. Proxy for `list({reverse: true, limit: <limit>})`
+
+#### Example
+
+```js
+var modeler = require('modeler');
+
+var numbers = modeler();
+var numNumbers = 634;
+var latch = numNumbers;
+
+for (var i = 1; i <= numNumbers; i++) {
+  numbers.create({
+    id: i // specific key
+  }, function (err) {
+    if (err) throw err;
+    if (!--latch) numbers.tail(10, function (err, chunk, next) {
+      if (err) throw err;
+      // just get the first chunk
+      console.log(chunk);
+    });
+  });
+}
+```
 
 ### slice(offset, [limit,] [options,] cb)
 
