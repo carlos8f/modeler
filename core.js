@@ -2,55 +2,100 @@ var idgen = require('idgen');
 
 module.exports = function (_opts) {
   var api = {
+    _prepareList: function (list, load, cb) {
+      // some backends may return full entities in the list. reduce to what we need
+      if (list.length && load) {
+        return api.load(list, cb);
+      }
+      else if (typeof list[0] === 'object') {
+        list = list.map(function (entity) {
+          return entity.id;
+        });
+      }
+      cb(null, list);
+    },
     list: function (options, cb) {
       if (typeof options === 'function') {
         cb = options;
-        options = null;
+        options = {};
       }
       options || (options = {});
-      var list = [];
-      api.tail(0, {load: options.load}, function (err, res, next) {
+
+      var args = [options.limit, function (err, list, next) {
         if (err) return cb(err);
-        list = list.concat(res);
-        if (res.length && next) {
-          next();
-        }
-        else {
-          if (!options.reverse) list.reverse();
-          list = list.slice(options.start, options.stop);
-          cb(null, list);
-        }
-      });
+        api._prepareList(list, options.load, function (err, list) {
+          cb(err, list, next);
+        });
+      }];
+
+      var method;
+      if (options.offset) {
+        method = '_slice';
+        args.unshift(options.offset || 0);
+      }
+      else if (options.reverse) method = '_tail';
+      else method = '_head';
+
+      api[method].apply(api, args);
     },
-    tail: function (limit, options, cb) {
+    head: function (limit, _opts, cb) {
       if (typeof limit === 'function') {
         cb = limit;
         limit = undefined;
-        options = {};
+        _opts = {};
       }
-      if (typeof options === 'function') {
-        cb = options;
-        options = {};
+      if (typeof _opts === 'function') {
+        cb = _opts;
+        if (typeof limit === 'object') {
+          _opts = limit;
+          limit = undefined;
+        }
+        else _opts = {};
       }
-      limit || (limit = undefined);
-      options || (options = {});
-
-      api._tail(limit, function (err, list, next) {
-        if (err) return cb(err);
-        // some backends may return full entities here. filter to what we need
-        if (options.load) {
-          api.load(list, function (err, list) {
-            cb(err, list, next);
-          });
-          return;
+      _opts || (_opts = {});
+      var options = api.copy(_opts);
+      options.limit = limit;
+      api.list(options, cb);
+    },
+    tail: function (limit, _opts, cb) {
+      if (typeof limit === 'function') {
+        cb = limit;
+        limit = undefined;
+        _opts = {};
+      }
+      if (typeof _opts === 'function') {
+        cb = _opts;
+        if (typeof limit === 'object') {
+          _opts = limit;
+          limit = undefined;
         }
-        else if (typeof list[0] === 'object') {
-          list = list.map(function (entity) {
-            return entity.id;
-          });
+        else _opts = {};
+      }
+      _opts || (_opts = {});
+      var options = api.copy(_opts);
+      options.limit = limit;
+      options.reverse = true;
+      api.list(options, cb);
+    },
+    slice: function (offset, limit, _opts, cb) {
+      if (typeof limit === 'function') {
+        cb = limit;
+        limit = undefined;
+        _opts = {};
+      }
+      if (typeof _opts === 'function') {
+        cb = _opts;
+        if (typeof limit === 'object') {
+          _opts = limit;
+          limit = undefined;
         }
-        cb(null, list, next);
-      });
+        else _opts = {};
+      }
+      _opts || (_opts = {});
+      var options = api.copy(_opts);
+      options.offset = offset;
+      options.limit = limit;
+      api.list(options, cb);
     },
     create: function (attrs, cb) {
       if (typeof attrs === 'function') {

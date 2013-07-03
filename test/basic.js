@@ -1,7 +1,21 @@
 describe('basic test', function () {
-  var apples, oranges, destroyed = [], bigGood, smallBad, notSureOk;
+  var apples, oranges, destroyed = [], bigGood, smallBad, notSureOk, singleOrange;
   if (typeof setUp !== 'undefined') before(setUp);
   if (typeof tearDown !== 'undefined') after(tearDown);
+
+  function assertList (expected, done) {
+    var list = [];
+    return function getNext (err, res, next) {
+      assert.ifError(err);
+      list = list.concat(res);
+      if (list.length === expected.length) {
+        assert.deepEqual(list, expected);
+        done();
+      }
+      else next();
+    };
+  }
+
   it('creates apples model', function () {
     var options = {
       name: 'apples',
@@ -125,32 +139,20 @@ describe('basic test', function () {
     assert.equal(notSure.size, 'not sure');
   });
   it('lists', function (done) {
-    apples.list(function (err, keys) {
-      assert.ifError(err);
-      assert.deepEqual(keys, [
-        smallBad.id,
-        bigGood.id
-      ]);
-      done();
-    });
+    apples.list(assertList([
+      smallBad.id,
+      bigGood.id
+    ], done));
   });
-  it('partial list', function (done) {
-    apples.list({start: 1}, function (err, keys) {
-      assert.ifError(err);
-      assert.deepEqual(keys, [
-        bigGood.id
-      ]);
-      done();
-    });
+  it('slice', function (done) {
+    apples.slice(1, assertList([
+      bigGood.id
+    ], done));
   });
-  it('another list', function (done) {
-    apples.list({stop: 1}, function (err, keys) {
-      assert.ifError(err);
-      assert.deepEqual(keys, [
-        smallBad.id
-      ]);
-      done();
-    });
+  it('head', function (done) {
+    apples.head(1, assertList([
+      smallBad.id
+    ], done));
   });
   it('creates another', function (done) {
     notSureOk = apples.create({condition: 'ok'}, function (err) {
@@ -158,26 +160,36 @@ describe('basic test', function () {
       done();
     });
   });
-  it('reverses', function (done) {
-    apples.list({reverse: true}, function (err, keys) {
-      assert.ifError(err);
-      assert.deepEqual(keys, [
-        notSureOk.id,
-        bigGood.id,
-        smallBad.id
-      ]);
-      done();
-    });
-  });
   it('tail', function (done) {
-    apples.tail(2, function (err, keys) {
-      assert.ifError(err);
-      assert.deepEqual(keys, [
-        notSureOk.id,
-        bigGood.id
-      ]);
-      done();
-    });
+    apples.tail(assertList([
+      notSureOk.id,
+      bigGood.id,
+      smallBad.id
+    ], done));
+  });
+  it('tail with load', function (done) {
+    apples.tail({load: true}, assertList([
+      notSureOk,
+      bigGood,
+      smallBad
+    ], done));
+  });
+  it('tail with limit', function (done) {
+    apples.tail(2, assertList([
+      notSureOk.id,
+      bigGood.id
+    ], done));
+  });
+  it('slice again', function (done) {
+    apples.slice(1, assertList([
+      bigGood.id,
+      notSureOk.id
+    ], done));
+  });
+  it('slice with limit', function (done) {
+    apples.slice(1, 1, assertList([
+      bigGood.id,
+    ], done));
   });
   it('load multi', function (done) {
     apples.load([smallBad.id, notSureOk.id, 'made up', bigGood.id], function (err, entities) {
@@ -205,38 +217,33 @@ describe('basic test', function () {
     });
   });
   it('new list', function (done) {
-    apples.list(function (err, keys) {
-      assert.ifError(err);
-      assert.deepEqual(keys, [
-        bigGood.id,
-        notSureOk.id
-      ]);
-      done();
-    });
+    apples.list(assertList([
+      bigGood.id,
+      notSureOk.id
+    ], done));
   });
   it('creates an orange', function (done) {
-    var single = oranges.create(function (err, savedSingle) {
+    singleOrange = oranges.create(function (err, savedSingle) {
       assert.ifError(err);
-      assert.deepEqual(savedSingle, single);
+      assert.deepEqual(savedSingle, singleOrange);
       assert(savedSingle.id);
       assert.equal(savedSingle.rev, 1);
       done();
     });
   });
   it('lists oranges', function (done) {
-    oranges.list(function (err, keys) {
+    oranges.list(assertList([
+      singleOrange.id
+    ], done));
+  });
+  it('loads orange', function (done) {
+    oranges.load(singleOrange.id, function (err, orange) {
       assert.ifError(err);
-      assert.equal(keys.length, 1);
-
-      var id = keys.pop();
-      oranges.load(id, function (err, orange) {
+      assert(orange);
+      oranges.destroy(orange.id, function (err) {
         assert.ifError(err);
-        assert(orange);
-        oranges.destroy(orange.id, function (err) {
-          assert.ifError(err);
-          assert.equal(destroyed.length, 1); // destroyed array only applies to apples
-          done();
-        });
+        assert.equal(destroyed.length, 1); // destroyed array only applies to apples
+        done();
       });
     });
   });
