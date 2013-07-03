@@ -7,7 +7,7 @@ simple entity system using a functional approach
 
 ## Idea
 
-Some "object-relational mapping systems" and try to do everything, and in doing
+Some "object-relational mapping systems" try to do everything, and in doing
 so become a huge steaming pile of shit that no one can figure out. They typically
 encourage the developer to become lazy and wasteful by baiting them with magically
 automatic cascading loaders made possible by a hidden entourage of expensive hooks
@@ -88,10 +88,13 @@ Keys or full objects can be listed using several styles.
 
 ### Sorting
 
-Insertion order is maintained as strictly as possible for a given store, which
-does not necessarily correlate to `created` date.
+Insertion order is maintained as strictly as possible for a given store. For
+stores that aren't able to track insertion order, an approximation is used instead.
 
-To sort by a field or function, you could:
+Note that insertion order is not necessarily equivalent to `created` date sorting,
+due to the fact that dates must have granularity (usually a millisecond).
+
+To sort by a specific property or function, you could:
 
 - create an `id,sort_value` table/collection/sorted set in your database of choice,
   and sort on `sort_value` using an index.
@@ -181,6 +184,8 @@ List in reverse order of insertion. Proxy for `list({reverse: true, limit: <limi
 
 #### Example
 
+List 10 numbers starting from 634, in descending order:
+
 ```js
 var modeler = require('modeler');
 
@@ -208,7 +213,96 @@ List starting at a given offset. Proxy for `list({offset: <offset>, limit: <limi
 
 ## Hooks
 
+When constructing a collection, you may pass custom functions with code to be
+injected into the CRUD process:
+
+```js
+var modeler = require('modeler');
+
+var apples = modeler({
+  name: 'apples',
+  // this code runs when apples.create() is called. modify apple by reference,
+  // trigger events, or throw exceptions on bad input, etc.
+  create: function (apple) {
+    // set a default size
+    apple.size || (apple.size = 'not sure');
+  },
+  // this code runs just before an object is passed to the store
+  save: function (apple, cb) {
+    // simple validator
+    if (!apple.condition) return cb(new Error('condition is required'));
+    if (!apple.size) return cb(new Error('size matters'));
+
+    // transform the saved version
+    process.nextTick(function () {
+      var c = apples.copy(apple);
+      // make condition an array for the hell of it
+      if (!Array.isArray(c.condition)) c.condition = [c.condition];
+      // properties prefixed with __ are "save-only": stripped when loaded
+      c.__internal = true;
+      // we're electing to alter the object, so pass it back to the callback
+      cb(null, c);
+    });
+  },
+  // this code runs right after an object is loaded from the store
+  load: function (apple, cb) {
+    // check the object's integrity
+    if (!Array.isArray(apple.condition))
+      return cb(new Error('apples need to be stored with a condition as an array. don\'t ask me why!'));
+    if (!apple.condition.length) return cb(new Error(apple.size + ' has no condition'));
+    if (!apple.__internal) return cb(new Error('apple should be internal right now'));
+    // transform into a usable state
+    process.nextTick(function () {
+      // convert condition back from array
+      apple.condition = apple.condition[0];
+      // we're electing to alter the object, so pass it back to the callback
+      cb(null, apple);
+    });
+  },
+  // this code is called with the full object just before it's deleted in the store
+  destroy: function (apple, cb) {
+    // trigger event or something...
+    process.nextTick(cb);
+  }
+});
+```
+
 ## Stores
+
+A store is really just a wrapper function which returns a modified version of
+what `require('modeler')` returns:
+
+```js
+var modeler = require('modeler');
+
+function myStore (_opts) {
+  var api = modeler(_opts);
+  // api.options contains parsed options
+  // override api's functions, or extend with your own...
+  return api;
+}
+```
+
+The key functions to override are:
+
+- `_head(limit, cb)` list the objects in insertion order
+- `_tail(limit, cb)` list the objects in reverse insertion order
+- `_slice(offset, limit, cb)` list objects in insertion order starting from offset
+- `_save(saveEntity, cb)` save an object to the store
+- `_load(id, cb)` load an object
+- `_destroy(id, cb)` destroy an object
+
+For an example store, see the
+[built-in memory store](https://github.com/carlos8f/modeler/blob/master/memory.js)
+
+### Stores on npm
+
+- [Redis](https://github.com/carlos8f/modeler-redis)
+- [LevelDB](https://github.com/carlos8f/modeler-leveldb)
+- [MySQL](https://github.com/carlos8f/modeler-mysql)
+- [Twitter](https://github.com/carlos8f/modeler-twitter)
+
+If you write a store and put it on npm, please let me know!
 
 - - -
 

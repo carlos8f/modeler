@@ -22,3 +22,26 @@ people.save(me, function (err) {
     people.destroy(people);
   });
 });
+
+// alternatively, you can create and save in one call by calling
+// people.create(attrs, function (err, person) {})
+
+/*
+me { name: 'carlos',
+  occupation: 'ninja',
+  isCrazy: true,
+  volume: 11,
+  birthday: Thu Nov 17 1983 00:00:00 GMT-0800 (PST),
+  id: 'NLbP7FD7xNMwPeIM',
+  created: Wed Jul 03 2013 14:40:59 GMT-0700 (PDT),
+  rev: 0 }
+loaded me { name: 'carlos',
+  occupation: 'ninja',
+  isCrazy: true,
+  volume: 11,
+  birthday: Thu Nov 17 1983 00:00:00 GMT-0800 (PST),
+  id: 'NLbP7FD7xNMwPeIM',
+  created: Wed Jul 03 2013 14:40:59 GMT-0700 (PDT),
+  rev: 1,
+  updated: Wed Jul 03 2013 14:40:59 GMT-0700 (PDT) }
+*/

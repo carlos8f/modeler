@@ -14,6 +14,8 @@ var latch = Object.keys(bands).reduce(function (latch, band) {
 
 Object.keys(bands).forEach(function (band) {
   bands[band].forEach(function (name) {
+    // note: memory store happens to be pretty much synchronous. normally
+    // the insertion order would not be guaranteed here.
     musicians.create({
       band: band,
       name: name
@@ -40,3 +42,13 @@ function listMusicians () {
 
   musicians.list({load: true}, getChunk);
 }
+
+/*
+john of the beatles
+paul of the beatles
+george of the beatles
+ringo of the beatles
+john of the doors
+ray of the doors
+jim of the doors
+*/
