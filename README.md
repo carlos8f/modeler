@@ -24,8 +24,8 @@ these functions.
 
 `modeler` might be for you if:
 
-- you need a quick, schema-less way of storing relational, time series, or
-  configuration data
+- you need a quick, schema-less way of storing id/object, relational, time series,
+  or configuration data
 - you'd prefer the portability and debuggability of object literals over
   prototype-based instances
 - you'd like to use an external API such as Twitter as a data store
@@ -42,6 +42,48 @@ these functions.
 - create, save, load, and destroy hooks
 - hooks let you trigger your own events, provide defaults, alter models, and
   perform validation
+
+## Basic usage
+
+Modeler comes out of the box with a memory-based store, which while not being
+appropriate for production use, demonstrates the API in its most basic form:
+
+```js
+var modeler = require('modeler');
+var people = modeler({
+  name: 'people' // optional for memory store, but required for most others
+});
+
+// create me
+var me = people.create({
+  name: 'carlos',
+  occupation: 'ninja',
+  isCrazy: true,
+  volume: 11,
+  birthday: new Date(1983, 10, 17)
+});
+console.log('me', me);
+
+// save me
+people.save(me, function (err) {
+  // i'm now saved
+  people.load(me.id, function (err, loadedMe) {
+    console.log('loaded me', loadedMe);
+    // destroy me! (callbacks are optional except for load(), btw)
+    people.destroy(people);
+  });
+});
+```
+
+## Listing objects
+
+### tail()
+
+### list()
+
+## Hooks
+
+## Stores
 
 - - -
 
