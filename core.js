@@ -39,7 +39,9 @@ module.exports = function (_opts) {
         if (err) return cb(err);
         // some backends may return full entities here. filter to what we need
         if (options.load) {
-          api.load(list, cb);
+          api.load(list, function (err, list) {
+            cb(err, list, next);
+          });
           return;
         }
         else if (typeof list[0] === 'object') {
