@@ -5,6 +5,44 @@ simple entity system using a functional approach
 
 [![build status](https://secure.travis-ci.org/carlos8f/modeler.png)](http://travis-ci.org/carlos8f/modeler)
 
+## Idea
+
+Some "object-relational mapping systems" and try to do everything, and in doing
+so become a huge steaming heap of shit that no one can figure out. They typically
+encourage the developer to become lazy and wasteful by baiting them with magically
+automatic cascading loaders weighed down by a hidden army of expensive hooks and subqueries.
+"getters" and "setters" abound, obfuscating and polluting the data structure and making it
+difficult to just find out what a model holds. And increasingly, ORMs are focused
+on a single database technology (SQL-only or MongoDB-only) and therefore make
+your code unportable by association.
+
+A `modeler` model, on the other hand, is simply an object literal. Its companion
+is a "collection" object, another object literal containing a set of functions
+which load, save, list, and destroy models. Collections are very easily
+extendible to work with any data store or external API, by simply overriding
+these functions.
+
+`modeler` might be for you if:
+
+- you need a quick, schema-less way of storing relational, time series, or
+  configuration data
+- you'd prefer the portability and debuggability of object literals over
+  prototype-based instances
+- you'd like to use an external API such as Twitter as a data store
+- you'd like to load a model from one store and save it in another
+- you want an ORM for some new trendy database, but can't find one. Implement
+  4 functions and `modeler` core will do the rest.
+
+## Features
+
+- simple, extensible core
+- "tailable" collections - easily fetch the latest data
+- instant [string-based IDs](https://github.com/carlos8f/node-idgen), available
+  before saving
+- create, save, load, and destroy hooks
+- hooks let you trigger your own events, provide defaults, alter models, and
+  perform validation
+
 - - -
 
 ### Developed by [Terra Eclipse](http://www.terraeclipse.com)
