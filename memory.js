@@ -9,8 +9,7 @@ module.exports = function (_opts) {
     (function next () {
       var list = keys.slice();
       if (reverse) list.reverse();
-      if (offset && limit) limit = offset + limit;
-      list = list.slice(offset, limit);
+      list = list.slice(offset, limit ? offset + limit : undefined);
       offset += list.length;
       cb(null, list, next);
     })();

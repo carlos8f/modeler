@@ -247,4 +247,35 @@ describe('basic test', function () {
       });
     });
   });
+  it('creates 100 oranges', function (done) {
+    var latch = 100;
+    for (var i = 0; i < 100; i++) {
+      (function (i) {
+        oranges.create({
+          id: i
+        }, function (err) {
+          assert.ifError(err);
+          if (!--latch) done();
+        });
+      })(i);
+    }
+  });
+  it('iterates with correct chunk size', function (done) {
+    var curr = 90, iterations = 0;
+    oranges.list({reverse: true, offset: 9, limit: 5}, function (err, chunk, next) {
+      assert.ifError(err);
+      iterations++;
+      if (chunk.length !== 5) {
+        assert.equal(iterations, 19);
+        assert.deepEqual(chunk, [0]);
+        done();
+      }
+      else {
+        assert.deepEqual(chunk, [
+          curr--, curr--, curr--, curr--, curr--
+        ]);
+        next();
+      }
+    });
+  });
 });
