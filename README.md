@@ -285,9 +285,8 @@ function myStore (_opts) {
 
 The key functions to override are:
 
-- `_head(limit, cb)` list the objects in insertion order
-- `_tail(limit, cb)` list the objects in reverse insertion order
-- `_slice(offset, limit, cb)` list objects in insertion order starting from offset
+- `_head(offset, limit, cb)` list the objects in insertion order
+- `_tail(offset, limit, cb)` list the objects in reverse insertion order
 - `_save(saveEntity, cb)` save an object to the store
 - `_load(id, cb)` load an object
 - `_destroy(id, cb)` destroy an object

@@ -21,22 +21,14 @@ module.exports = function (_opts) {
       }
       options || (options = {});
 
-      var args = [options.limit, function (err, list, next) {
+      var args = [options.offset || 0, options.limit, function (err, list, next) {
         if (err) return cb(err);
         api._prepareList(list, options.load, function (err, list) {
           cb(err, list, next);
         });
       }];
 
-      var method;
-      if (options.offset) {
-        method = '_slice';
-        args.unshift(options.offset || 0);
-      }
-      else if (options.reverse) method = '_tail';
-      else method = '_head';
-
-      api[method].apply(api, args);
+      api[options.reverse ? '_tail' : '_head'].apply(api, args);
     },
     head: function (limit, _opts, cb) {
       if (typeof limit === 'function') {

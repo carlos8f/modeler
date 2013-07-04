@@ -16,14 +16,11 @@ module.exports = function (_opts) {
     })();
   }
 
-  api._head = function (limit, cb) {
-    continuable(0, limit, true, cb);
-  };
-  api._tail = function (limit, cb) {
-    continuable(0, limit, false, cb);
-  };
-  api._slice = function (offset, limit, cb) {
+  api._head = function (offset, limit, cb) {
     continuable(offset, limit, true, cb);
+  };
+  api._tail = function (offset, limit, cb) {
+    continuable(offset, limit, false, cb);
   };
   api._save = function (saveEntity, cb) {
     // optimize for tailing
