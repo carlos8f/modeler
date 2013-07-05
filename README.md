@@ -301,6 +301,15 @@ For an example store, see the
 - [MySQL](https://github.com/carlos8f/modeler-mysql)
 - [Twitter](https://github.com/carlos8f/modeler-twitter)
 
+### Stores planned
+
+- MongoDB
+- Riak
+- ElasticSearch
+- Github (gist)
+- Stocks (ticks, OHLC)
+- Facebook
+
 If you write a store and put it on npm, please let me know!
 
 - - -
