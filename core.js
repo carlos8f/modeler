@@ -114,6 +114,14 @@ module.exports = function (_opts) {
           err.code = 'REV_CONFLICT';
           return cb(err);
         }
+        else if (existing) {
+          // sync up save-only properties
+          Object.keys(existing).forEach(function (k) {
+            if (k.indexOf('__') === 0 && typeof entity[k] === 'undefined') {
+              entity[k] = existing[k];
+            }
+          });
+        }
         entity.rev++;
         entity.updated = new Date();
 
