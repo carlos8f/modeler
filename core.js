@@ -114,13 +114,6 @@ module.exports = function (_opts) {
           err.code = 'REV_CONFLICT';
           return cb(err);
         }
-        else if (existing) {
-          Object.keys(existing).forEach(function (k) {
-            if (typeof entity[k] === 'undefined') {
-              entity[k] = existing[k];
-            }
-          });
-        }
         entity.rev++;
         entity.updated = new Date();
 

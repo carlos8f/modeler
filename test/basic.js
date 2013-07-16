@@ -127,6 +127,19 @@ describe('basic test', function () {
       done();
     });
   });
+  it('deletes a property', function (done) {
+    delete bigGood.type;
+    apples.save(bigGood, function (err) {
+      assert.ifError(err);
+      apples.load(bigGood.id, function (err, savedBigGood) {
+        assert.ifError(err);
+        assert.deepEqual(savedBigGood, bigGood);
+        assert.equal(savedBigGood.type, undefined);
+        assert.equal(savedBigGood.rev, 3);
+        done();
+      });
+    });
+  });
   it('validates', function (done) {
     apples.create({size: 'medium'}, function (err, apple) {
       assert.equal(err.message, 'condition is required');
