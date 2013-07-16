@@ -96,6 +96,13 @@ describe('basic test', function () {
     assert.equal(smallBad.size, 'small');
     assert.equal(smallBad.condition, 'bad');
   });
+  it('cannot create with same id', function (done) {
+    apples.create({id: bigGood.id, size: 'big', condition: 'good'}, function (err, dupeBigGood) {
+      assert(err);
+      assert.equal(err.code, 'REV_CONFLICT');
+      done();
+    });
+  });
   it('loads', function (done) {
     apples.load(bigGood.id, function (err, savedBigGood) {
       assert.ifError(err);
