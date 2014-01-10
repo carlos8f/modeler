@@ -7,7 +7,8 @@
     "idgen": "~1.3.0"
   },
   "devDependencies": {
-    "mocha": "*"
+    "mocha": "*",
+    "async": "~0.2.9"
   },
   "scripts": {
     "test": "make test"

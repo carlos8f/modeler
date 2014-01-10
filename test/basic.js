@@ -1,4 +1,5 @@
 describe('basic test', function () {
+  var async = require('async');
   var apples, oranges, destroyed = [], bigGood, smallBad, notSureOk, singleOrange;
   if (typeof setUp !== 'undefined') before(setUp);
   if (typeof tearDown !== 'undefined') after(tearDown);
@@ -268,17 +269,9 @@ describe('basic test', function () {
     });
   });
   it('creates 100 oranges', function (done) {
-    var latch = 100;
-    for (var i = 0; i < 100; i++) {
-      (function (i) {
-        oranges.create({
-          id: i
-        }, function (err) {
-          assert.ifError(err);
-          if (!--latch) done();
-        });
-      })(i);
-    }
+    async.timesSeries(100, function (i, next) {
+      oranges.create({ id: i }, next);
+    }, done);
   });
   it('iterates with correct chunk size', function (done) {
     var curr = 90, iterations = 0;
