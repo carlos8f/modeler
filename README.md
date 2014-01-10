@@ -77,7 +77,7 @@ people.save(me, function (err) {
     // `rev` is incremented, and `updated` date is set
     console.log('loaded me', loadedMe);
     // destroy me! (callbacks are optional except for load(), btw)
-    people.destroy(people);
+    people.destroy(me);
   });
 });
 ```
