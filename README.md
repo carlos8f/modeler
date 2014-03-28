@@ -217,7 +217,8 @@ When constructing a collection, you may pass custom functions with code to be
 injected into the CRUD process:
 
 ```js
-var modeler = require('modeler');
+var modeler = require('modeler')
+  , assert = require('assert')
 
 var apples = modeler({
   name: 'apples',
@@ -233,6 +234,14 @@ var apples = modeler({
     if (!apple.condition) return cb(new Error('condition is required'));
     if (!apple.size) return cb(new Error('size matters'));
 
+    // the first time it's being saved, apple.rev === 1
+    if (apple.rev === 1)
+    else {
+      // if there is a previous version of the apple, it will be exposed on .__old.
+      // NOTE: the .__old property should be considered read-only and just used for reference.
+      assert(apple.__old.rev === apple.rev - 1);
+    }
+
     // transform the saved version
     process.nextTick(function () {
       var c = apples.copy(apple);
@@ -240,7 +249,8 @@ var apples = modeler({
       if (!Array.isArray(c.condition)) c.condition = [c.condition];
       // properties prefixed with __ are "save-only": stripped when loaded
       c.__internal = true;
-      // we're electing to alter the object, so pass it back to the callback
+      // we're electing to alter the object, so pass it back to the callback.
+      // NOTE: if you don't intend on altering the object, just call cb()
       cb(null, c);
     });
   },
