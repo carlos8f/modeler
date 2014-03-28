@@ -103,7 +103,9 @@ describe('basic test', function () {
   it('cannot create with same id', function (done) {
     apples.create({id: bigGood.id, size: 'big', condition: 'good'}, function (err, dupeBigGood) {
       assert(err);
+      assert(!dupeBigGood);
       assert.equal(err.code, 'REV_CONFLICT');
+      assert.equal(err.existing.id, bigGood.id);
       done();
     });
   });
