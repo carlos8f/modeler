@@ -112,6 +112,7 @@ module.exports = function (_opts) {
         if (existing && existing.rev > entity.rev) {
           err = new Error('cannot save over a newer revision');
           err.code = 'REV_CONFLICT';
+          err.existing = existing;
           return cb(err);
         }
         else if (existing) {
