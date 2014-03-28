@@ -115,6 +115,8 @@ module.exports = function (_opts) {
           return cb(err);
         }
         else if (existing) {
+          // expose the existing entity as .__old to track changes
+          entity.__old = existing;
           // sync up save-only properties
           Object.keys(existing).forEach(function (k) {
             if (k.indexOf('__') === 0 && typeof entity[k] === 'undefined') {
@@ -131,6 +133,10 @@ module.exports = function (_opts) {
         function doSave (err, saveEntity) {
           if (!saveEntity) saveEntity = entity;
           if (err) return cb(err);
+
+          // don't save old entity.
+          delete entity.__old;
+          delete saveEntity.__old;
 
           api._save(saveEntity, function (err, savedEntity) {
             if (err) {

@@ -23,6 +23,10 @@ describe('basic test', function () {
         apple.size || (apple.size = 'not sure');
       },
       save: function (apple, cb) {
+        // old entity should be exposed on .__old
+        if (apple.rev > 1) {
+          assert(apple.__old.rev === apple.rev - 1);
+        }
         // simple validator
         if (!apple.condition) return cb(new Error('condition is required'));
         if (!apple.size) return cb(new Error('size matters'));
@@ -112,7 +116,7 @@ describe('basic test', function () {
       assert.equal(savedBigGood.condition, 'good');
       assert.strictEqual(savedBigGood.__internal, undefined);
       assert.strictEqual(bigGood.__internal, undefined);
-      
+
       apples.load(smallBad.id, function (err, savedSmallBad) {
         assert.ifError(err);
         assert.deepEqual(savedSmallBad, smallBad);
