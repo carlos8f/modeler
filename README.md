@@ -254,6 +254,11 @@ var apples = modeler({
       cb(null, c);
     });
   },
+  // this code runs right after an object is saved, synced up, and had save-only properties removed
+  afterSave: function (apple, cb) {
+    // maybe add a reference to this model in a related model
+    process.nextTick(cb);
+  },
   // this code runs right after an object is loaded from the store
   load: function (apple, cb) {
     // check the object's integrity
@@ -272,6 +277,11 @@ var apples = modeler({
   // this code is called with the full object just before it's deleted in the store
   destroy: function (apple, cb) {
     // trigger event or something...
+    process.nextTick(cb);
+  },
+  // this code is called with the full object right after it's deleted in the store
+  afterDestroy: function (apple, cb) {
+    // maybe cleanup related models...
     process.nextTick(cb);
   }
 });
