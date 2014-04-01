@@ -157,7 +157,13 @@ module.exports = function (_opts) {
               if (k.indexOf('__') === 0) delete entity[k];
             });
 
-            cb(null, entity);
+            if (api.options.afterSave) {
+              api.options.afterSave.call(api, entity, function (err) {
+                if (err) return cb(err);
+                cb(null, entity);
+              });
+            }
+            else cb(null, entity);
           });
         }
       });
