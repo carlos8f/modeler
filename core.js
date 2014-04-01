@@ -233,7 +233,13 @@ module.exports = function (_opts) {
 
       function doDestroy (err) {
         if (err) return cb(err);
-        api._destroy(id, cb);
+        api._destroy(id, function (err) {
+          if (err) return cb(err);
+          if (api.options.afterDestroy) {
+            api.options.afterDestroy.call(api, entity, cb);
+          }
+          else cb(null);
+        });
       }
     },
     copy: function (obj) {
