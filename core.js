@@ -157,7 +157,13 @@ module.exports = function (_opts) {
               if (k.indexOf('__') === 0) delete entity[k];
             });
 
-            cb(null, entity);
+            if (api.options.afterSave) {
+              api.options.afterSave.call(api, entity, function (err) {
+                if (err) return cb(err);
+                cb(null, entity);
+              });
+            }
+            else cb(null, entity);
           });
         }
       });
@@ -227,7 +233,13 @@ module.exports = function (_opts) {
 
       function doDestroy (err) {
         if (err) return cb(err);
-        api._destroy(id, cb);
+        api._destroy(id, function (err) {
+          if (err) return cb(err);
+          if (api.options.afterDestroy) {
+            api.options.afterDestroy.call(api, entity, cb);
+          }
+          else cb(null);
+        });
       }
     },
     copy: function (obj) {
