@@ -1,6 +1,6 @@
 {
   "name": "modeler",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "simple entity system using a functional approach",
   "main": "index.js",
   "dependencies": {
