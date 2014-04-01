@@ -222,25 +222,33 @@ module.exports = function (_opts) {
     destroy: function (id, cb) {
       if (!cb) cb = api.options.defaultCb;
       if (id.id) id = id.id;
-      if (api.options.destroy) {
+      if (api.options.destroy || api.options.afterDestroy) {
         api.load(id, function (err, entity) {
           if (err) return cb(err);
           if (!entity) return cb();
-          api.options.destroy.call(api, entity, doDestroy);
+          onReady(entity);
         });
       }
-      else doDestroy();
+      else onReady();
 
-      function doDestroy (err) {
-        if (err) return cb(err);
-        api._destroy(id, function (err) {
+      function onReady (entity) {
+        if (api.options.destroy) {
+          api.options.destroy.call(api, entity, doDestroy);
+        }
+        else doDestroy();
+
+        function doDestroy (err) {
           if (err) return cb(err);
-          if (api.options.afterDestroy) {
-            api.options.afterDestroy.call(api, entity, cb);
-          }
-          else cb(null);
-        });
+          api._destroy(id, function (err) {
+            if (err) return cb(err);
+            if (api.options.afterDestroy) {
+              api.options.afterDestroy.call(api, entity, cb);
+            }
+            else cb(null);
+          });
+        }
       }
+
     },
     copy: function (obj) {
       var c = {};
