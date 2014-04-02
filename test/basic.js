@@ -1,5 +1,5 @@
 describe('basic test', function () {
-  var apples, oranges, destroyed = [], bigGood, smallBad, notSureOk, singleOrange;
+  var apples, oranges, lemons, destroyed = [], bigGood, smallBad, notSureOk, singleOrange, singleLemon, deletedLemonSpy = {};
   if (typeof setUp !== 'undefined') before(setUp);
   if (typeof tearDown !== 'undefined') after(tearDown);
 
@@ -71,6 +71,27 @@ describe('basic test', function () {
       });
     }
     oranges = modeler(options);
+  });
+  it('creates lemons model', function () {
+    var options = {
+      name: 'lemons',
+      afterSave: function (lemon, cb) {
+        assert(lemon);
+        lemon.afterSaveCalled = true;
+        process.nextTick(cb);
+      },
+      afterDestroy: function (lemon, cb) {
+        assert(lemon);
+        deletedLemonSpy.afterDestroyCalled = true;
+        process.nextTick(cb);
+      }
+    };
+    if (typeof extraOptions !== 'undefined') {
+      Object.keys(extraOptions).forEach(function (k) {
+        options[k] = extraOptions[k];
+      });
+    }
+    lemons = modeler(options);
   });
   it('creates a few apples', function (done) {
     bigGood = apples.create({size: 'big', condition: 'good'});
@@ -163,6 +184,28 @@ describe('basic test', function () {
   it('defaults', function () {
     var notSure = apples.create({condition: 'so so'});
     assert.equal(notSure.size, 'not sure');
+  });
+  it('runs afterSave hook', function (done) {
+    var lemon = {
+      color: 'yellow',
+      smooth: false
+    }
+    lemons.create(lemon, function (err, model) {
+      assert.ifError(err);
+      Object.keys(lemon).forEach(function (prop) {
+        assert.equal(model[prop], lemon[prop]);
+      });
+      assert(model.afterSaveCalled);
+      singleLemon = model;
+      done();
+    });
+  });
+  it('runs afterDestroy hook', function (done) {
+    lemons.destroy(singleLemon.id, function (err) {
+      assert.ifError(err);
+      assert(deletedLemonSpy.afterDestroyCalled);
+      done();
+    });
   });
   it('lists', function (done) {
     apples.list(assertList([
