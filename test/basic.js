@@ -12,7 +12,10 @@ describe('basic test', function () {
         assert.deepEqual(list, expected);
         done();
       }
-      else next();
+      else {
+        assert(list.length < expected.length, 'list returned too many results');
+        next();
+      }
     };
   }
 
