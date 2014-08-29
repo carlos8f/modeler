@@ -116,20 +116,25 @@ module.exports = function (api) {
         });
       }
       if (cb) getNext(cb);
-      else return es.readable(function (count, _cb) {
-        var self = this;
-        options.limit = count;
-        getNext(function (err, chunk) {
-          if (err) return _cb(err);
-          if (chunk.length) {
-            chunk.forEach(function (entity) {
-              self.emit('data', entity);
-            });
-            _cb();
-          }
-          else return self.emit('end');
+      else {
+        var emitCount = 0;
+        return es.readable(function (count, _cb) {
+          var self = this;
+          getNext(function (err, chunk) {
+            if (err) return _cb(err);
+            var remaining = (options.limit || -1) - emitCount;
+            if (remaining !== 0 && chunk.length) {
+              if (remaining !== -1 && chunk.length > remaining) chunk.splice(0, remaining);
+              chunk.forEach(function (entity) {
+                self.emit('data', entity);
+                emitCount++;
+              });
+              _cb();
+            }
+            else return self.emit('end');
+          });
         });
-      });
+      }
     }
   }
   if (!api.tail) {

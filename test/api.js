@@ -1,6 +1,7 @@
 var utils = require('../utils')
   , assert = require('assert')
   , util = require('util')
+  , es = require('event-stream')
   , modeler = require('../')
 
 describe('api', function () {
@@ -224,18 +225,11 @@ describe('api', function () {
       });
     });
   });
-  it('creates 100 oranges', function (done) {
+  it('streams 100 oranges in', function (done) {
     var latch = 100;
-    for (var i = 0; i < 100; i++) {
-      (function (i) {
-        oranges.save({
-          id: i
-        }, {isNew: true}, function (err) {
-          assert.ifError(err);
-          if (!--latch) done();
-        });
-      })(i);
-    }
+    var data = [];
+    for (var i = 0; i < 100; i++) data.push({id: i});
+    es.readArray(data).pipe(oranges.save()).once('end', done);
   });
   it('iterates with correct chunk size', function (done) {
     var curr = 90, iterations = 0;
@@ -254,5 +248,19 @@ describe('api', function () {
         next();
       }
     });
+  });
+  it('streams out', function (done) {
+    oranges.tail({limit: 5, offset: 9})
+      .pipe(es.writeArray(function (err, oranges) {
+        assert.ifError(err);
+        assert.deepEqual(oranges, [
+          {id: 90},
+          {id: 89},
+          {id: 88},
+          {id: 87},
+          {id: 86}
+        ]);
+        done();
+      }))
   });
 });
