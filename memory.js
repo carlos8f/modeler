@@ -1,44 +1,41 @@
-var core = require('./core');
+var modeler = require('./core')
+  , utils = require('./utils')
 
 // basic memory-based implementation
-module.exports = function (_opts) {
-  var api = core(_opts);
+module.exports = function (api) {
+  api || (api = {});
   var data = {}, keys = [];
-
-  function continuable (offset, limit, reverse, cb) {
-    (function next () {
-      var list = keys.slice();
-      if (reverse) list.reverse();
-      list = list.slice(offset, limit ? offset + limit : undefined);
-      offset += list.length;
-      cb(null, list, next);
-    })();
+  if (!api._tail) {
+    api._tail = function (offset, limit, options, cb) {
+      cb(null, keys.slice(offset, limit ? offset + limit : undefined).map(function (id) {
+        var entity = data[':' + id];
+        if (typeof entity === 'undefined') return null;
+        else return utils.copy(entity);
+      }));
+    };
   }
-
-  api._head = function (offset, limit, cb) {
-    continuable(offset, limit, true, cb);
-  };
-  api._tail = function (offset, limit, cb) {
-    continuable(offset, limit, false, cb);
-  };
-  api._save = function (saveEntity, cb) {
-    // optimize for tailing
-    if (!~keys.indexOf(saveEntity.id)) keys.unshift(saveEntity.id);
-    data[':' + saveEntity.id] = saveEntity; // object is not a hash
-    cb();
-  };
-  api._load = function (id, cb) {
-    var entity = data[':' + id];
-    if (typeof entity === 'undefined') entity = null;
-    else entity = api.copy(entity);
-    cb(null, entity);
-  };
-  api._destroy = function (id, cb) {
-    delete data[':' + id];
-    var idx = keys.indexOf(id);
-    if (~idx) keys.splice(idx, 1);
-    cb();
-  };
-
-  return api;
+  if (!api._save) {
+    api._save = function (entity, options, cb) {
+      if (!~keys.indexOf(entity.id)) keys.unshift(entity.id);
+      data[':' + entity.id] = entity; // object is not a hash
+      cb();
+    };
+  }
+  if (!api._load) {
+    api._load = function (id, options, cb) {
+      var entity = data[':' + id];
+      if (typeof entity === 'undefined') entity = null;
+      else entity = utils.copy(entity);
+      cb(null, entity);
+    };
+  }
+  if (!api._destroy) {
+    api._destroy = function (entity, options, cb) {
+      delete data[':' + entity.id];
+      var idx = keys.indexOf(entity.id);
+      if (~idx) keys.splice(idx, 1);
+      cb();
+    };
+  }
+  return modeler(api);
 };

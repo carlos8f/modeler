@@ -1,48 +1,90 @@
-var modeler = require('../');
+var modeler = require('../')
+  , assert = require('assert')
 
 var apples = modeler({
   name: 'apples',
-  // this code runs when apples.create() is called. modify apple by reference,
-  // trigger events, or throw exceptions on bad input, etc.
-  create: function (apple) {
-    // set a default size
-    apple.size || (apple.size = 'not sure');
+  biteSize: 10,
+  hooks: {
+    // this code runs just before an object is passed to the store
+    save: function (apple, options, cb) {
+      // "this" is the object we ran through modeler()
+      assert(this.name, 'apples');
+      // simple validator
+      if (!apple.size) return cb(new Error('size matters'));
+      if (options.isNew) {
+        // the apple is about to be saved for the first time
+        apple.bitesTaken = 0;
+      }
+      // simulate I/O
+      process.nextTick(cb);
+    },
+    // this code runs just after an object is saved to the store
+    afterSave: function (apple, options, cb) {
+      cb();
+    },
+    // this code runs right after an object is loaded from the store
+    load: function (apple, options, cb) {
+      // simulate I/O
+      process.nextTick(cb);
+    },
+    // this code is called with the full object just before it's deleted in the store
+    destroy: function (apple, options, cb) {
+      // trigger event or something...
+      process.nextTick(cb);
+    },
+    // this code runs right after an object is destroyed
+    afterDestroy: function (apple, options, cb) {
+      cb();
+    }
   },
-  // this code runs just before an object is passed to the store
-  save: function (apple, cb) {
-    // simple validator
-    if (!apple.condition) return cb(new Error('condition is required'));
-    if (!apple.size) return cb(new Error('size matters'));
-
-    // transform the saved version
-    process.nextTick(function () {
-      var c = apples.copy(apple);
-      // make condition an array for the hell of it
-      if (!Array.isArray(c.condition)) c.condition = [c.condition];
-      // properties prefixed with __ are "save-only": stripped when loaded
-      c.__internal = true;
-      // we're electing to alter the object, so pass it back to the callback
-      cb(null, c);
-    });
-  },
-  // this code runs right after an object is loaded from the store
-  load: function (apple, cb) {
-    // check the object's integrity
-    if (!Array.isArray(apple.condition))
-      return cb(new Error('apples need to be stored with a condition as an array. don\'t ask me why!'));
-    if (!apple.condition.length) return cb(new Error(apple.size + ' has no condition'));
-    if (!apple.__internal) return cb(new Error('apple should be internal right now'));
-    // transform into a usable state
-    process.nextTick(function () {
-      // convert condition back from array
-      apple.condition = apple.condition[0];
-      // we're electing to alter the object, so pass it back to the callback
-      cb(null, apple);
-    });
-  },
-  // this code is called with the full object just before it's deleted in the store
-  destroy: function (apple, cb) {
-    // trigger event or something...
-    process.nextTick(cb);
+  // this is a custom method
+  takeBite: function (apple) {
+    apple.bitesTaken += this.biteSize;
   }
 });
+
+// create apple
+var apple = {
+  size: 0
+};
+console.log('apple', apple);
+
+// save apple
+apples.save(apple, function (err) {
+  assert.equal(err.message, 'size matters');
+  apple.size = 'big';
+  // try saving again
+  apples.save(apple, function (err) {
+    assert.ifError(err);
+    console.log('saved', apple);
+    apples.load(apple.id, function (err, loadedApple) {
+      assert.ifError(err);
+      console.log('loadedApple', loadedApple);
+      // take a bite
+      apples.takeBite(apple);
+      // save again to see bitesTaken increase
+      apples.save(apple, function (err) {
+        assert.ifError(err);
+        console.log('saved', apple);
+        apples.destroy(apple.id, function (err) {
+          assert.ifError(err);
+          apples.load(apple.id, function (err, loadedApple) {
+            if (err) throw err;
+            console.log('poof', loadedApple);
+          });
+        });
+      });
+    });
+  });
+});
+
+/**
+Output:
+
+apple { size: 0 }
+saved { size: 'big', id: 'l6d9twwGbX5urMDu1FD88Q', bitesTaken: 0 }
+loadedApple { size: 'big', id: 'l6d9twwGbX5urMDu1FD88Q', bitesTaken: 0 }
+saved { size: 'big', id: 'l6d9twwGbX5urMDu1FD88Q', bitesTaken: 10 }
+poof null
+
+**/
