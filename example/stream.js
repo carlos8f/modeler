@@ -1,29 +1,24 @@
 var modeler = require('../');
+var es = require('event-stream');
+var data = require('./beatles.json');
 var users = modeler();
 
-var data = [
-  {
-    name: 'John',
-    instrument: 'rhythm guitar'
-  },
-  {
-    name: 'Paul',
-    instrument: 'bass guitar'
-  },
-  {
-    name: 'George',
-    instrument: 'lead guitar'
-  },
-  {
-    name: 'Ringo',
-    instrument: 'He\'s got an inferiority complex. That\'s why he plays the drums.'
-  }
-];
+es.readArray(data)
+  .pipe(users.save())
+  .once('end', function () {
+    users.tail().on('data', console.log);
+  })
 
-var latch = data.length;
-data.forEach(function (member) {
-  users.save(member, function (err) {
-    if (err) throw err;
-    if (!--latch) users.tail().on('data', console.log);
-  });
-});
+/**
+Output:
+
+{ name: 'Ringo',
+  instrument: 'He\'s got an inferiority complex. That\'s why he plays the drums.',
+  id: '@ru_mod_or_rocka' }
+{ name: 'George',
+  instrument: 'lead guitar',
+  id: '@mystic_sitar' }
+{ name: 'Paul', instrument: 'bass guitar', id: '@tha_walrus' }
+{ name: 'John', instrument: 'rhythm guitar', id: '@sb_fields' }
+
+**/

@@ -6,8 +6,10 @@ module.exports = function (api) {
   api || (api = {});
   var data = {}, keys = [];
   if (!api._tail) {
-    api._tail = function (options, cb) {
-      cb(null, keys.slice(options.offset || 0, options.limit ? options.offset + options.limit : undefined).map(function (id) {
+    api._list = function (options, cb) {
+      var _keys = keys.slice();
+      if (!options.reverse) _keys.reverse();
+      cb(null, _keys.slice(options.offset || 0, options.limit ? options.offset + options.limit : undefined).map(function (id) {
         var entity = data[':' + id];
         if (typeof entity === 'undefined') return null;
         else return utils.copy(entity);

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "John",
+    "instrument": "rhythm guitar",
+    "id": "@sb_fields"
+  },
+  {
+    "name": "Paul",
+    "instrument": "bass guitar",
+    "id": "@tha_walrus"
+  },
+  {
+    "name": "George",
+    "instrument": "lead guitar",
+    "id": "@mystic_sitar"
+  },
+  {
+    "name": "Ringo",
+    "instrument": "He's got an inferiority complex. That's why he plays the drums.",
+    "id": "@ru_mod_or_rocka"
+  }
+]

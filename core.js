@@ -5,12 +5,9 @@ module.exports = function (api) {
   api || (api = {});
   api.hooks || (api.hooks = {});
 
-  if (!api.idAttribute) {
-    api.idAttribute = 'id';
-  }
-  if (!api.newId) {
-    api.newId = utils.newId;
-  }
+  if (!api.idAttribute) api.idAttribute = 'id';
+  if (!api.newId) api.newId = utils.newId;
+
   if (!api.save) {
     api.save = function (entity, options, cb) {
       if (typeof options === 'function') {
@@ -22,30 +19,46 @@ module.exports = function (api) {
         entity = {};
         options = {};
       }
+      if (!cb) options = entity;
       options = utils.copy(options);
+      var autoId = false;
 
-      if (typeof options.isNew === 'undefined') {
-        options.isNew = typeof entity[api.idAttribute] === 'undefined';
-      }
-      if (options.isNew && typeof entity[api.idAttribute] === 'undefined') {
-        entity[api.idAttribute] = api.newId();
-      }
-      if (options.hooks !== false && api.hooks.save) api.hooks.save.call(api, entity, options, doSave);
-      else doSave();
+      if (cb) {
+        if (typeof options.isNew === 'undefined') {
+          options.isNew = typeof entity[api.idAttribute] === 'undefined';
+        }
+        if (options.isNew && typeof entity[api.idAttribute] === 'undefined') {
+          entity[api.idAttribute] = api.newId();
+          autoId = true;
+        }
+        if (options.hooks !== false && api.hooks.save) api.hooks.save.call(api, entity, options, doSave);
+        else doSave();
 
-      function doSave (err) {
-        if (err) return cb(err);
-        api._save(entity, options, function (err) {
-          if (err) return cb(err);
-          if (api.hooks.afterSave) {
-            api.hooks.afterSave.call(api, entity, options, function (err) {
-              if (err) return cb(err);
-              cb(null, entity);
-            });
-          }
-          else cb(null, entity);
+        function onErr (err) {
+          if (autoId) delete entity[api.idAttribute];
+          return cb(err);
+        }
+
+        function doSave (err) {
+          if (err) return onErr(err);
+          api._save(entity, options, function (err) {
+            if (err) return onErr(err);
+            if (api.hooks.afterSave) {
+              api.hooks.afterSave.call(api, entity, options, function (err) {
+                if (err) return onErr(err);
+                cb(null, entity);
+              });
+            }
+            else cb(null, entity);
+          });
+        }
+      }
+      else return es.map(function (entity, _cb) {
+        api.save(entity, function (err) {
+          if (err) return _cb(err);
+          _cb(null, entity);
         });
-      }
+      });
     };
   }
   if (!api.load) {
@@ -70,17 +83,17 @@ module.exports = function (api) {
       });
     };
   }
-  if (!api.tail) {
-    api.tail = function (options, cb) {
+  if (!api.head) {
+    api.head = function (options, cb) {
       if (typeof options === 'function') {
         cb = options;
         options = {};
       }
       options = utils.copy(options);
-
       options.offset || (options.offset = 0);
+
       function getNext (_cb) {
-        api._tail(options, function (err, chunk) {
+        api._list(options, function (err, chunk) {
           if (err) return _cb(err);
           if (chunk.length) {
             options.offset += chunk.length;
@@ -116,6 +129,17 @@ module.exports = function (api) {
           else return self.emit('end');
         });
       });
+    }
+  }
+  if (!api.tail) {
+    api.tail = function (options, cb) {
+      if (typeof options === 'function') {
+        cb = options;
+        options = {};
+      }
+      options = utils.copy(options);
+      options.reverse = true;
+      return api.head(options, cb);
     }
   }
   if (!api.destroy) {

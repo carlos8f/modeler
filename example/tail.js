@@ -6,14 +6,14 @@ var numNumbers = 634;
 var latch = numNumbers;
 
 for (var i = 1; i <= numNumbers; i++) {
-  numbers.save({ id: i }, {isNew: true}, function (err) {
+  numbers.save({ id: i }, function (err) {
     assert.ifError(err);
     if (!--latch) tail();
   });
 }
 
 function tail () {
-  numbers.tail(10, function (err, chunk, next) {
+  numbers.tail({limit: 10}, function (err, chunk, next) {
     assert.ifError(err);
     // just get the first chunk
     console.log(chunk);
