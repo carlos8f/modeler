@@ -1,15 +1,14 @@
-var crypto = require('crypto');
+var utils = require('./utils');
 
 module.exports = function (api) {
   api || (api = {});
-  api.options || (api.options = {});
   api.hooks || (api.hooks = {});
-  if (!api.id) {
-    api.id = function (entity) {
-      return crypto.pseudoRandomBytes(16).toString('base64')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_');
-    };
+
+  if (!api.idAttribute) {
+    api.idAttribute = 'id';
+  }
+  if (!api.newId) {
+    api.newId = utils.newId;
   }
   if (!api.save) {
     api.save = function (entity, options, cb) {
@@ -17,31 +16,29 @@ module.exports = function (api) {
         cb = options;
         options = {};
       }
-      options || (options = {});
+      else if (typeof entity === 'function') {
+        cb = entity;
+        entity = {};
+        options = {};
+      }
+      options = utils.copy(options);
 
-      if (typeof options.isNew === 'undefined') options.isNew = typeof entity.id === 'undefined';
-
-      if (options.id !== false && typeof entity.id === 'undefined') {
-        entity.id = api.id();
-      };
-
+      if (typeof options.isNew === 'undefined') {
+        options.isNew = typeof entity[api.idAttribute] === 'undefined';
+      }
+      if (options.isNew && typeof entity[api.idAttribute] === 'undefined') {
+        entity[api.idAttribute] = api.newId();
+      }
       if (options.hooks !== false && api.hooks.save) api.hooks.save.call(api, entity, options, doSave);
       else doSave();
 
-      function onErr (err) {
-        if (options.isNew && options.id !== false) {
-          delete entity.id;
-        }
-        return cb(err);
-      }
-
       function doSave (err) {
-        if (err) return onErr(err);
+        if (err) return cb(err);
         api._save(entity, options, function (err) {
-          if (err) return onErr(err);
+          if (err) return cb(err);
           if (api.hooks.afterSave) {
             api.hooks.afterSave.call(api, entity, options, function (err) {
-              if (err) return onErr(err);
+              if (err) return cb(err);
               cb(null, entity);
             });
           }
@@ -80,7 +77,7 @@ module.exports = function (api) {
       }
       options || (options = {});
 
-      var offset = 0;
+      var offset = options.offset || 0;
       (function getNext () {
         api._tail(offset, limit, options, function (err, chunk) {
           if (err) return cb(err);
