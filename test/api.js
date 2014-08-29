@@ -180,14 +180,14 @@ describe('api', function () {
     });
   });
   it('tail', function (done) {
-    apples.tail(10, assertList([
+    apples.tail({limit: 10}, assertList([
       notSureOk,
       bigGood,
       smallBad
     ], done));
   });
   it('tail with limit', function (done) {
-    apples.tail(2, assertList([
+    apples.tail({limit: 2}, assertList([
       notSureOk,
       bigGood
     ], done));
@@ -239,7 +239,7 @@ describe('api', function () {
   });
   it('iterates with correct chunk size', function (done) {
     var curr = 90, iterations = 0;
-    oranges.tail(5, {offset: 9}, function (err, chunk, next) {
+    oranges.tail({limit: 5, offset: 9}, function (err, chunk, next) {
       assert.ifError(err);
       iterations++;
       if (chunk.length !== 5) {

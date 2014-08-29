@@ -93,6 +93,7 @@ module.exports = function (api) {
       options.offset || (options.offset = 0);
 
       function getNext (_cb) {
+        if (!_cb) _cb = cb;
         api._list(options, function (err, chunk) {
           if (err) return _cb(err);
           if (chunk.length) {
