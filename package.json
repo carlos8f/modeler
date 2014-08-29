@@ -3,7 +3,9 @@
   "version": "0.4.7",
   "description": "simple entity system using a functional approach",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "event-stream": "^3.1.7"
+  },
   "devDependencies": {
     "mocha": "*"
   },

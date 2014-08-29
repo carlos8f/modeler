@@ -1,4 +1,5 @@
-var utils = require('./utils');
+var utils = require('./utils')
+  , es = require('event-stream')
 
 module.exports = function (api) {
   api || (api = {});
@@ -53,7 +54,7 @@ module.exports = function (api) {
         cb = options;
         options = {};
       }
-      options || (options = {});
+      options = utils.copy(options);
 
       api._load(id, options, function (err, entity) {
         if (err) return cb(err);
@@ -70,36 +71,51 @@ module.exports = function (api) {
     };
   }
   if (!api.tail) {
-    api.tail = function (limit, options, cb) {
+    api.tail = function (options, cb) {
       if (typeof options === 'function') {
         cb = options;
         options = {};
       }
-      options || (options = {});
+      options = utils.copy(options);
 
-      var offset = options.offset || 0;
-      (function getNext () {
-        api._tail(offset, limit, options, function (err, chunk) {
-          if (err) return cb(err);
+      options.offset || (options.offset = 0);
+      function getNext (_cb) {
+        api._tail(options, function (err, chunk) {
+          if (err) return _cb(err);
           if (chunk.length) {
-            offset += chunk.length;
-            if (options.hooks === false || !api.hooks.load) cb(null, chunk, getNext);
+            options.offset += chunk.length;
+            if (options.hooks === false || !api.hooks.load) _cb(null, chunk, getNext);
             else {
               var latch = chunk.length, errored = false;
               chunk.forEach(function (entity) {
                 api.hooks.load.call(api, entity, options, function (err) {
                   if (err) {
                     errored = true;
-                    return cb(err);
+                    return _cb(err);
                   }
-                  if (!--latch && !errored) cb(null, chunk, getNext);
+                  if (!--latch && !errored) _cb(null, chunk, getNext);
                 });
               });
             }
           }
-          else cb(null, chunk, null);
+          else _cb(null, chunk, null);
         });
-      })();
+      }
+      if (cb) getNext(cb);
+      else return es.readable(function (count, _cb) {
+        var self = this;
+        options.limit = count;
+        getNext(function (err, chunk) {
+          if (err) return _cb(err);
+          if (chunk.length) {
+            chunk.forEach(function (entity) {
+              self.emit('data', entity);
+            });
+            _cb();
+          }
+          else return self.emit('end');
+        });
+      });
     }
   }
   if (!api.destroy) {
@@ -108,7 +124,7 @@ module.exports = function (api) {
         cb = options;
         options = {};
       }
-      options || (options = {});
+      options = utils.copy(options);
 
       api.load(id, options, function (err, entity) {
         if (err) return cb(err);
