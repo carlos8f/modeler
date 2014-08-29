@@ -8,8 +8,7 @@ module.exports = function (api) {
     api.id = function (entity) {
       return crypto.pseudoRandomBytes(16).toString('base64')
         .replace(/\+/g, '-')
-        .replace(/\//g, '_')
-        .replace(/=/g, '');
+        .replace(/\//g, '_');
     };
   }
   if (!api.save) {
