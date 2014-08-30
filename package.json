@@ -1,7 +1,7 @@
 {
   "name": "modeler",
   "version": "0.4.7",
-  "description": "simple entity system using a functional approach",
+  "description": "A simple and fun data API to rule them all",
   "main": "index.js",
   "dependencies": {
     "event-stream": "^3.1.7"
@@ -21,7 +21,17 @@
     "entity",
     "model",
     "orm",
-    "bacon"
+    "data",
+    "cache",
+    "database",
+    "abstraction",
+    "redis",
+    "leveldb",
+    "level",
+    "api",
+    "crud",
+    "object",
+    "literal"
   ],
   "author": "Carlos Rodriguez <carlos@s8f.org> (http://s8f.org/)",
   "license": "MIT",
