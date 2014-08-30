@@ -27,7 +27,7 @@ implementing a driver is as simple as writing 4 functions!
 
 - Database agnostic!
 - CRUD (Create, Read, Update, Delete) and iteration!
-- Ultra simple!
+- Ultra simple! Not much to remember!
 - No object-oriented crap!
 - Streaming!
 - `tail` and `head` your collection, just like unix!
