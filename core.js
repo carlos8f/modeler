@@ -28,7 +28,7 @@ module.exports = function (api) {
           options.isNew = typeof entity[api.idAttribute] === 'undefined';
         }
         if (options.isNew && typeof entity[api.idAttribute] === 'undefined') {
-          entity[api.idAttribute] = api.newId();
+          entity[api.idAttribute] = api.newId(entity);
           autoId = true;
         }
         if (options.hooks !== false && api.hooks.save) api.hooks.save.call(api, entity, options, doSave);
