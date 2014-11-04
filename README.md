@@ -43,8 +43,10 @@ Returns: collection object
 
 Options:
 
+- `name` - string - uniquely identifies this collection to the engine (can be a prefix, bucket or
+  table name in the data store)
 - `idAttribute` - string - default: `id` - use a custom name for the ID property
-- `newId` - function - takes an entity, returns a new ID for that entity
+- `newId` - function - takes an entity, returns a new ID for that entity (default: 22 psuedorandom base64url-encoded characters)
 - `hooks` - object
     - `save` - function - takes `(entity, cb)` and runs before entity is saved
     - `afterSave` - function - takes `(entity, cb)` and runs after an entity is saved
@@ -61,7 +63,8 @@ Arguments:
 
 - `entity` - object - the data to save
 - `options` - object - options to pass to the hooks/engine
-    - `isNew` - boolean - signal to the engine that this is a new record
+    - `isNew` - boolean - signal to the engine that this is a new record (if omitted,
+      modeler will auto-detect newness if the `id` property is undefined)
 - `cb` - function - call the function with `(err)` when done
 
 ---
@@ -124,7 +127,9 @@ First call `modeler()` to create a collection object:
 var modeler = require('modeler');
 
 // create a new collection
-var people = modeler();
+var people = modeler({
+  name: 'people'
+});
 ```
 
 The `people` object now has the methods (more on those later):
@@ -167,7 +172,7 @@ people.save(me, function (err) {
 
 Note that when you save a model that doesn't already have an `id` property,
 modeler thinks this is a "new" record, and generates an `id` matching the
-pattern `[a-zA-Z0-9-_]{16}`. This behavior can be overridden (please see the API
+pattern `[a-zA-Z0-9-_]{22}`. This behavior can be overridden (please see the API
 section).
 
 ## Step 3: Load the model
