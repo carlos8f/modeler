@@ -111,6 +111,7 @@ people.load('MMUMInV-6nNVw3I3oUmjTw', function (err, me) {
   }
   **/
 });
+```
 
 ## Step 4: Heads and tails
 
