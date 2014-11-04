@@ -37,7 +37,7 @@ var collection = modeler({
 
 ---
 
-# Guide: modeler in 5 steps
+# Quick Start: modeler in 5 steps
 
 ## Step 1: Create a collection
 
@@ -186,6 +186,8 @@ Options:
     - `load` - function - takes `(model, cb)` and runs after a model is loaded
     - `destroy` - function - takes `(model, cb)` and runs after a model is destroyed
 
+---
+
 ### CRUD methods
 
 `collection.save([model], [options], [cb])`
@@ -200,6 +202,8 @@ Arguments:
       modeler will auto-detect newness if the `id` property is undefined)
 - `cb` - function - call the function with `(err)` when done
 
+---
+
 `collection.load(id, [options], cb)`
 
 Load a model.
@@ -209,6 +213,8 @@ Arguments:
 - `id` - string - the id of the model to fetch.
 - `options` - object - options to pass to the engine and hooks
 - `cb` - function - called with `(err, model)` when done
+
+---
 
 `collection.destroy(id, [options], cb)`
 
@@ -235,6 +241,8 @@ Arguments:
     - `limit` - number - limit to this number of models
 - `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `tail()`
   will return a readable stream.
+
+---
 
 `collection.head([options], [cb])`
 
