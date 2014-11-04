@@ -5,35 +5,23 @@ A simple and fun data API to rule them all
 
 [![build status](https://secure.travis-ci.org/carlos8f/modeler.png)](http://travis-ci.org/carlos8f/modeler)
 
-## Introducing modeler
+## Object Literal (TM) technology!
 
-In the old days, most apps used some type of SQL, and pretty much everyone wrote SQL queries
-in their code directly, which seemed fine at the time.
-
-Now, we have all these crazy things like MongoDB, Redis, LevelDB, etc.
-which each have their own quirks, APIs, and capabilities. We realized that writing
-queries directly into our apps not only marries us to the DB implementation,
-but tends to create ugly, hard-to-maintain code. We might write a one-off abstraction
-layer for this or that, but then we have more headaches when it comes time to
-unify and reuse.
-
-Modeler is intended to make working with data fun again, by uniting all the backends under
-one elegant API. Write the app now, and choose the storage engine later. Unlike most ORM
-modules, modeler does not have a preference for SQL or NoSQL, key/value or table. 
-
-Also, if you're using some new database no one has heard about yet, don't dispair --
-implementing a modeler driver is straightforward.
+A "model" in modeler is simply a JavaScript object which can be JSON-stringified. No prototypes,
+no getters or setters. Use modeler to generate a "collection" object, which holds the methods and
+options to work with said data.
 
 ## Features
 
 - Database agnostic! Use all the DB's!
-- CRUD (Create, Read, Update, Delete) and iteration!
-- Ultra simple! Not much to remember!
-- No object-oriented crap! Object Literal (TM) technology!
-- Streaming!
-- `tail` and `head` your collection, just like unix!
+- Stream models in or out!
+- `tail()` and `head()` your collection, just like unix!
 - User-defined hooks!
 - Ready-to-use drivers for LevelDB, Redis, and others!
+
+## Quick-start: LevelDB
+
+
 
 ## API
 
@@ -46,24 +34,24 @@ Options:
 - `name` - string - uniquely identifies this collection to the engine (can be a prefix, bucket or
   table name in the data store)
 - `idAttribute` - string - default: `id` - use a custom name for the ID property
-- `newId` - function - takes an entity, returns a new ID for that entity (default: 22 psuedorandom base64url-encoded characters)
+- `newId` - function - takes a model, returns a new ID for that model (default: 22 psuedorandom base64url-encoded characters)
 - `hooks` - object
-    - `save` - function - takes `(entity, cb)` and runs before entity is saved
-    - `afterSave` - function - takes `(entity, cb)` and runs after an entity is saved
-    - `load` - function - takes `(entity, cb)` and runs after an entity is loaded
-    - `destroy` - function - takes `(entity, cb)` and runs after an entity is destroyed
+    - `save` - function - takes `(model, cb)` and runs before model is saved
+    - `afterSave` - function - takes `(model, cb)` and runs after a model is saved
+    - `load` - function - takes `(model, cb)` and runs after a model is loaded
+    - `destroy` - function - takes `(model, cb)` and runs after a model is destroyed
 
 ---
 
-`collection.save([entity], [options], [cb])`
+`collection.save([model], [options], [cb])`
 
-Save an entity.
+Save a model.
 
 Arguments:
 
-- `entity` - object - the data to save
+- `model` - object - the data to save
 - `options` - object - options to pass to the hooks/engine
-    - `isNew` - boolean - signal to the engine that this is a new record (if omitted,
+    - `isNew` - boolean - signal to the engine that this is a new model (if omitted,
       modeler will auto-detect newness if the `id` property is undefined)
 - `cb` - function - call the function with `(err)` when done
 
@@ -71,49 +59,49 @@ Arguments:
 
 `collection.load(id, [options], cb)`
 
-Load an entity.
+Load a model.
 
 Arguments:
 
-- `id` - string - the id of the entity to fetch.
+- `id` - string - the id of the model to fetch.
 - `options` - object - options to pass to the engine and hooks
-- `cb` - function - called with `(err, entity)` when done
+- `cb` - function - called with `(err, model)` when done
 
 ---
 
 `collection.destroy(id, [options], cb)`
 
-Destroy an entity.
+Destroy a model.
 
 Arguments:
 
-- `id` - string - the id of the entity to destroy.
+- `id` - string - the id of the model to destroy.
 - `options` - object - options to pass to the engine and hooks
-- `cb` - function - called with `(err, entity)` when done
+- `cb` - function - called with `(err, model)` when done
 
 ---
 
 `collection.tail([options], [cb])`
 
-Tail the collection, fetching the latest records first.
+Tail the collection, fetching the latest models first.
 
 Arguments:
 
 - `options` - object - options to pass to the engine and hooks
-    - `offset` - number - skip `offset` number of records
-    - `limit` - number - limit to this number of records
+    - `offset` - number - skip `offset` number of models
+    - `limit` - number - limit to this number of models
 - `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `tail()`
   will return a readable stream.
 
 `collection.head([options], [cb])`
 
-Head the collection, fetching the earliest records first.
+Head the collection, fetching the earliest models first.
 
 Arguments:
 
 - `options` - object - options to pass to the engine and hooks
-    - `offset` - number - skip `offset` number of records
-    - `limit` - number - limit to this number of records
+    - `offset` - number - skip `offset` number of models
+    - `limit` - number - limit to this number of models
 - `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `head()`
   will return a readable stream.
 
@@ -141,9 +129,6 @@ The `people` object now has the methods (more on those later):
 - `people.destroy`
 
 ## Step 2: Save a model
-
-A "model" or "entity" in modeler is simply an object literal. No prototypes,
-no getters, no setters.
 
 ```js
 var me = {
@@ -246,11 +231,40 @@ people.destroy('MMUMInV-6nNVw3I3oUmjTw', function (err, me) {
 });
 ```
 
+# Upgrading from modeler 0.x
+
+The modeler 1.x API is NOT backwards compatible with 0.x. Please be advised of the
+following changes when upgrading to the 1.x API:
+
+- `created` / `updated` dates no longer maintained
+- `rev` no longer maintained or tracked
+- `create()` no longer necessary to call
+- Insertion order is no longer guaranteed
+- User-defined hooks are now defined in 'hooks' key of collection options
+- Removed `list()` method from API
+- Engine plugin API has changed - see `memory.js` in core for an example
+- User can now pass options directly to engine for all methods
+- `.list({load: true})` no longer needed (full object always returned)
+- `head()` and `tail()` arguments only consist of options now (no more limit as first arg)
+- save-only and engine-only properties no longer supported
+
+## New features in 1.x:
+
+- streaming for all methods
+- the options that you pass to modeler now *become* the collection object, and can
+  override core or engine or add new methods
+- `id` attribute now configurable
+- custom ids through `newId` function
+- "is new" detection can be manually overridden per save using `isNew` option
+- user-defined hook methods now accessible on `collection.hooks.{hook}`
+- new ids default to 16 bytes of psuedo-random base64url-encoded data (22 characters)
+- planned - password-based encryption
+
+- - -
+
 ### Developed by [Terra Eclipse](http://www.terraeclipse.com)
 Terra Eclipse, Inc. is a nationally recognized political technology and
 strategy firm located in Aptos, CA and Washington, D.C.
-
-- - -
 
 ### License: MIT
 
