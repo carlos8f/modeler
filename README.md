@@ -7,7 +7,7 @@ A simple and fun data API to rule them all
 
 ## Introducing modeler
 
-In the old days, most apps used MySQL, and pretty much everyone wrote MySQL queries
+In the old days, most apps used some type of SQL, and pretty much everyone wrote SQL queries
 in their code directly, which seemed fine at the time.
 
 Now, we have all these crazy things like MongoDB, Redis, LevelDB, etc.
@@ -17,22 +17,104 @@ but tends to create ugly, hard-to-maintain code. We might write a one-off abstra
 layer for this or that, but then we have more headaches when it comes time to
 unify and reuse.
 
-Modeler is intended to make data fun again, by uniting all the backends under
-one elegant API.
+Modeler is intended to make working with data fun again, by uniting all the backends under
+one elegant API. Write the app now, and choose the storage engine later. Unlike most ORM
+modules, modeler does not have a preference for SQL or NoSQL, key/value or table. 
 
 Also, if you're using some new database no one has heard about yet, don't dispair --
-implementing a driver is as simple as writing 4 functions!
+implementing a modeler driver is straightforward.
 
-### Features
+## Features
 
-- Database agnostic!
+- Database agnostic! Use all the DB's!
 - CRUD (Create, Read, Update, Delete) and iteration!
 - Ultra simple! Not much to remember!
-- No object-oriented crap!
+- No object-oriented crap! Object Literal (TM) technology!
 - Streaming!
 - `tail` and `head` your collection, just like unix!
 - User-defined hooks!
-- Ready-to-use adapters for Redis, LevelDB, and others!
+- Ready-to-use drivers for LevelDB, Redis, and others!
+
+## API
+
+`collection = modeler([options])`:
+
+Returns: collection object
+
+Options:
+
+- `idAttribute` - string - default: `id` - use a custom name for the ID property
+- `newId` - function - takes an entity, returns a new ID for that entity
+- `hooks` - object
+    - `save` - function - takes `(entity, cb)` and runs before entity is saved
+    - `afterSave` - function - takes `(entity, cb)` and runs after an entity is saved
+    - `load` - function - takes `(entity, cb)` and runs after an entity is loaded
+    - `destroy` - function - takes `(entity, cb)` and runs after an entity is destroyed
+
+---
+
+`collection.save([entity], [options], [cb])`
+
+Save an entity.
+
+Arguments:
+
+- `entity` - object - the data to save
+- `options` - object - options to pass to the hooks/engine
+    - `isNew` - boolean - signal to the engine that this is a new record
+- `cb` - function - call the function with `(err)` when done
+
+---
+
+`collection.load(id, [options], cb)`
+
+Load an entity.
+
+Arguments:
+
+- `id` - string - the id of the entity to fetch.
+- `options` - object - options to pass to the engine and hooks
+- `cb` - function - called with `(err, entity)` when done
+
+---
+
+`collection.destroy(id, [options], cb)`
+
+Destroy an entity.
+
+Arguments:
+
+- `id` - string - the id of the entity to destroy.
+- `options` - object - options to pass to the engine and hooks
+- `cb` - function - called with `(err, entity)` when done
+
+---
+
+`collection.tail([options], [cb])`
+
+Tail the collection, fetching the latest records first.
+
+Arguments:
+
+- `options` - object - options to pass to the engine and hooks
+    - `offset` - number - skip `offset` number of records
+    - `limit` - number - limit to this number of records
+- `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `tail()`
+  will return a readable stream.
+
+`collection.head([options], [cb])`
+
+Head the collection, fetching the earliest records first.
+
+Arguments:
+
+- `options` - object - options to pass to the engine and hooks
+    - `offset` - number - skip `offset` number of records
+    - `limit` - number - limit to this number of records
+- `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `head()`
+  will return a readable stream.
+
+# Guide: modeler in 5 steps
 
 ## Step 1: Create a collection
 
@@ -55,8 +137,8 @@ The `people` object now has the methods (more on those later):
 
 ## Step 2: Save a model
 
-A "model" or "entity" in modelerspeak is simply an object literal. No prototypes,
-no getters, no setters, nothing out of the ordinary.
+A "model" or "entity" in modeler is simply an object literal. No prototypes,
+no getters, no setters.
 
 ```js
 var me = {
@@ -85,7 +167,7 @@ people.save(me, function (err) {
 
 Note that when you save a model that doesn't already have an `id` property,
 modeler thinks this is a "new" record, and generates an `id` matching the
-pattern `[a-zA-Z0-9-_]{16}`. This behavior can be overridden (please see the options
+pattern `[a-zA-Z0-9-_]{16}`. This behavior can be overridden (please see the API
 section).
 
 ## Step 3: Load the model
@@ -103,7 +185,7 @@ people.load('MMUMInV-6nNVw3I3oUmjTw', function (err, me) {
     isCrazy: true,
     volume: 11,
     birthday: Thu Nov 17 1983 00:00:00 GMT-0800 (PST),
-    id: 'MMUMInV-6nNVw3I3oUmjTw'  <--- auto generated
+    id: 'MMUMInV-6nNVw3I3oUmjTw'
   }
   **/
 });
@@ -157,24 +239,7 @@ Destroy the microfilm before it's too late:
 people.destroy('MMUMInV-6nNVw3I3oUmjTw', function (err, me) {
   // success or error logic, get a copy of me, for old times' sake
 });
-
-## API
-
-`modeler([options])`:
-
-Returns: collection object
-
-Options:
-
-- `idAttribute` - string
-- `newId` - function
-- `hooks` - object
-
----
-
-`collection.save([attrs], [options], [cb])`
-
-
+```
 
 ### Developed by [Terra Eclipse](http://www.terraeclipse.com)
 Terra Eclipse, Inc. is a nationally recognized political technology and

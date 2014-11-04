@@ -6,6 +6,7 @@ module.exports = function (api) {
   api || (api = {});
   var data = {}, keys = [];
   if (!api._tail) {
+    // @todo: bug below?
     api._list = function (options, cb) {
       var _keys = keys.slice();
       if (!options.reverse) _keys.reverse();
