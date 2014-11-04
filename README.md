@@ -17,93 +17,25 @@ options to work with said data.
 - Stream models in or out!
 - `tail()` and `head()` your collection, just like unix!
 - User-defined hooks!
-- Ready-to-use drivers for LevelDB, Redis, and others!
 
-## Quick-start: LevelDB
+## Database agnostic?
 
+The `modeler` module, "out of the box", only provides a "memory only" store for development, with no
+persistence. "Engine" modules, which extend modeler core, are expected to implement the actual persistence.
 
+To use your database of choice and achieve persistence, find a suitable modeler engine on npm and
+replace `var modeler = require('modeler')` with this (for example, to use LevelDB):
 
-## API
+```js
+var modeler = require('modeler-leveldb');
 
-`collection = modeler([options])`:
-
-Returns: collection object
-
-Options:
-
-- `name` - string - uniquely identifies this collection to the engine (can be a prefix, bucket or
-  table name in the data store)
-- `idAttribute` - string - default: `id` - use a custom name for the ID property
-- `newId` - function - takes a model, returns a new ID for that model (default: 22 psuedorandom base64url-encoded characters)
-- `hooks` - object
-    - `save` - function - takes `(model, cb)` and runs before model is saved
-    - `afterSave` - function - takes `(model, cb)` and runs after a model is saved
-    - `load` - function - takes `(model, cb)` and runs after a model is loaded
-    - `destroy` - function - takes `(model, cb)` and runs after a model is destroyed
+var collection = modeler({
+  name: 'my_collection',
+  db: require('level')('/path/to/db') // <-- engine-specific option, a LevelDB db
+});
+```
 
 ---
-
-`collection.save([model], [options], [cb])`
-
-Save a model.
-
-Arguments:
-
-- `model` - object - the data to save
-- `options` - object - options to pass to the hooks/engine
-    - `isNew` - boolean - signal to the engine that this is a new model (if omitted,
-      modeler will auto-detect newness if the `id` property is undefined)
-- `cb` - function - call the function with `(err)` when done
-
----
-
-`collection.load(id, [options], cb)`
-
-Load a model.
-
-Arguments:
-
-- `id` - string - the id of the model to fetch.
-- `options` - object - options to pass to the engine and hooks
-- `cb` - function - called with `(err, model)` when done
-
----
-
-`collection.destroy(id, [options], cb)`
-
-Destroy a model.
-
-Arguments:
-
-- `id` - string - the id of the model to destroy.
-- `options` - object - options to pass to the engine and hooks
-- `cb` - function - called with `(err, model)` when done
-
----
-
-`collection.tail([options], [cb])`
-
-Tail the collection, fetching the latest models first.
-
-Arguments:
-
-- `options` - object - options to pass to the engine and hooks
-    - `offset` - number - skip `offset` number of models
-    - `limit` - number - limit to this number of models
-- `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `tail()`
-  will return a readable stream.
-
-`collection.head([options], [cb])`
-
-Head the collection, fetching the earliest models first.
-
-Arguments:
-
-- `options` - object - options to pass to the engine and hooks
-    - `offset` - number - skip `offset` number of models
-    - `limit` - number - limit to this number of models
-- `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `head()`
-  will return a readable stream.
 
 # Guide: modeler in 5 steps
 
@@ -122,11 +54,11 @@ var people = modeler({
 
 The `people` object now has the methods (more on those later):
 
-- `people.save`
-- `people.load`
-- `people.tail`
-- `people.head`
-- `people.destroy`
+- `people.save([model], [options], [cb])`
+- `people.load(id, [options], cb)`
+- `people.destroy(id, [options], cb)`
+- `people.tail([options], [cb])`
+- `people.head([options], [cb])`
 
 ## Step 2: Save a model
 
@@ -230,6 +162,92 @@ people.destroy('MMUMInV-6nNVw3I3oUmjTw', function (err, me) {
   // success or error logic, get a copy of me, for old times' sake
 });
 ```
+
+---
+
+## API
+
+### Collection creation
+
+`collection = modeler([options])`:
+
+Returns: collection object
+
+Options:
+
+- `name` - string - uniquely identifies this collection to the engine (can be a prefix, bucket or
+  table name in the data store)
+- `idAttribute` - string - default: `id` - use a custom name for the ID property
+- `newId` - function - takes a model, returns a new ID for that model (default: 22 psuedorandom base64url-encoded characters)
+- `hooks` - object
+    - `save` - function - takes `(model, cb)` and runs before model is saved
+    - `afterSave` - function - takes `(model, cb)` and runs after a model is saved
+    - `load` - function - takes `(model, cb)` and runs after a model is loaded
+    - `destroy` - function - takes `(model, cb)` and runs after a model is destroyed
+
+### CRUD methods
+
+`collection.save([model], [options], [cb])`
+
+Save a model.
+
+Arguments:
+
+- `model` - object - the data to save
+- `options` - object - options to pass to the hooks/engine
+    - `isNew` - boolean - signal to the engine that this is a new model (if omitted,
+      modeler will auto-detect newness if the `id` property is undefined)
+- `cb` - function - call the function with `(err)` when done
+
+`collection.load(id, [options], cb)`
+
+Load a model.
+
+Arguments:
+
+- `id` - string - the id of the model to fetch.
+- `options` - object - options to pass to the engine and hooks
+- `cb` - function - called with `(err, model)` when done
+
+`collection.destroy(id, [options], cb)`
+
+Destroy a model.
+
+Arguments:
+
+- `id` - string - the id of the model to destroy.
+- `options` - object - options to pass to the engine and hooks
+- `cb` - function - called with `(err, model)` when done
+
+---
+
+### Iteration Methods
+
+`collection.tail([options], [cb])`
+
+Tail the collection, fetching the latest models first.
+
+Arguments:
+
+- `options` - object - options to pass to the engine and hooks
+    - `offset` - number - skip `offset` number of models
+    - `limit` - number - limit to this number of models
+- `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `tail()`
+  will return a readable stream.
+
+`collection.head([options], [cb])`
+
+Head the collection, fetching the earliest models first.
+
+Arguments:
+
+- `options` - object - options to pass to the engine and hooks
+    - `offset` - number - skip `offset` number of models
+    - `limit` - number - limit to this number of models
+- `cb` - function (optional) - called with `(err, chunk, next)`. NOTE: If omitted, `head()`
+  will return a readable stream.
+
+---
 
 # Upgrading from modeler 0.x
 
