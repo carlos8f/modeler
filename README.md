@@ -115,7 +115,7 @@ people.load('MMUMInV-6nNVw3I3oUmjTw', function (err, me) {
 
 ## Step 4: Heads and tails
 
-`tail` and `head` methods are provided to iterate the saved records, sorted by
+`tail()` and `head()` methods are provided to iterate the saved records, sorted by
 insertion order. `tail`, as you may have guessed, returns the newest records first.
 
 There are two styles to call these functions: manual and streaming.
@@ -139,15 +139,15 @@ require('event-stream')
 ### Manual tail
 
 The "manual" interface requires an iteration callback which explicitly requests
-more results if they are needed.
+more models if they are needed.
 
 ```js
-var results = [];
+var models = [];
 people.tail(function (err, chunk, next) {
   if (err) throw err;
   // chunk is an array of models, of arbitrary length.
-  results = results.concat(chunk);
-  if (needMoreResults && next) next();
+  models = models.concat(chunk);
+  if (needMoreModels && next) next();
   else {
     // now we have the full results
   }
